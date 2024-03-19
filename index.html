@@ -3,17 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>My Website</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+        .text {
+            flex: 1;
+            padding: 20px;
+            background-color: white;
+            color: black;
+        }
+        .image {
+            flex: 1;
+            padding: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
 </head>
 <body>
-    <h1>WELCOME TO A NEW LEVEL</h1>
-    <p>#######################</p>
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
-    <p></p>
+    <div class="container">
+        <div class="text">
+            <h1>Welcome to My Website</h1>
+            <p>This is the left side of the page where you can display your text content.</p>
+        </div>
+        <div class="image">
+            <img src="your-image-url.jpg" alt="Your Image">
+        </div>
+    </div>
 </body>
 </html>
