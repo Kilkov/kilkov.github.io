@@ -1,52 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ОГЛЕДАЛО</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-        .container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-        }
-        .text {
-            flex: 1;
-            padding: 20px;
-            background-color: white;
-            color: black;
-        }
-        .image {
-            flex: 1;
-            padding: 20px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            display: block;
-            /* Hide broken image icon */
-            background-color: transparent;
-            border: none;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gamebook Example</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #ffffff;
+        color: #000000;
+    }
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    .content {
+        max-width: 600px;
+        text-align: center;
+        font-size: 12px;
+    }
+    .options {
+        margin-top: 20px;
+    }
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+<script>
+    function option1() {
+        window.location.href = "option1.html";
+    }
 
-        }
-    </style>
+    function option2() {
+        window.location.href = "option2.html";
+    }
+
+    function option3() {
+        window.location.href = "option3.html";
+    }
+</script>
 </head>
 <body>
-    <div class="container">
-        <div class="text">
-            <h1>ТЕСТ ТЕСТ ТЕСТ ТЕСТ</h1>
-            <p>This is the left side of the page where you can display your text content.</p>
-        </div>
-        <div class="image">
-            <img src="NewImage.jpg"  width="1000" height="1000">
-            <img src="https://github.com/Kilkov/kilkov.github.io/blob/main/NewImage.jpg">
+<div class="container">
+    <div class="content">
+        <p>Ако утре днес е последния ден от живота ти?</p>
+        <div class="options">
+            <p>Ще:</p>
+            <button onclick="option1()">пия бира</button>
+            <button onclick="option2()">гледам телевизия</button>
+            <button onclick="option3()">се разходя</button>
         </div>
     </div>
+</div>
 </body>
+</html>
