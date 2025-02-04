@@ -1,90 +1,17 @@
 <!DOCTYPE html>
-<html lang="bg">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Книга-Игра</title>
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background: url('images/background.jpg') no-repeat center center fixed;
-            background-size: cover;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        main {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 600px;
-            width: 100%;
-        }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        ul li {
-            margin: 10px 0;
-        }
-        ul li a {
-            text-decoration: none;
-            color: #007BFF;
-        }
-        ul li a:hover {
-            text-decoration: underline;
-        }
-        .audio-button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .audio-button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>My Art Gallery</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="script.js"></script>
 </head>
 <body>
-    <main>
-        <h1>Добре дошли в Книга-Игра</h1>
-        <p id="random-text">Зареждане на случайно съобщение...</p>
-        <p>Какво ще направите?</p>
-        <ul>
-            <li><a href="page1.html">Продължи към гората</a></li>
-            <li><a href="page2.html">Остани на пътя</a></li>
-        </ul>
-        <button class="audio-button" onclick="playAudio()">Пусни звук</button>
-    </main>
-    <script>
-        // Случайни текстове за добавяне на динамика
-        const randomTexts = [
-            "Времето е мрачно и зловещо.",
-            "Слънцето грее ярко, вдъхвайки ви надежда.",
-            "Птиците пеят наоколо, но нещо не е наред.",
-            "Тишината е прекъсвана от далечен вълчи вой."
-        ];
-
-        // Избор на произволен текст и показване на страницата
-        document.getElementById('random-text').textContent = randomTexts[Math.floor(Math.random() * randomTexts.length)];
-
-        // Звукове ефекти
-        function playAudio() {
-            const audio = new Audio('audio/story.mp3'); // Replace with your actual audio file path
-            audio.play();
-        }
-    </script>
+    <div class="gallery-container">
+        <img id="artwork" src="images/art1.jpg" alt="Artwork">
+        <button id="prev" class="nav-button">&#10094; Prev</button>
+        <button id="next" class="nav-button">Next &#10095;</button>
+    </div>
 </body>
 </html>
