@@ -1,8 +1,7 @@
 const images = [
     "images/art1.jpg",
     "images/art2.jpg",
-    "images/art3.jpg",
-    "images/art4.jpg"
+    "images/art3.jpg"
 ];
 
 let currentIndex = 0;
@@ -27,5 +26,5 @@ function prevImage() {
 prevButton.addEventListener("click", prevImage);
 nextButton.addEventListener("click", nextImage);
 
-// Auto-change images every 120 seconds (120000 ms)
-setInterval(nextImage, 120000);
+// Auto-change images every 60 seconds (120000 ms)
+setInterval(nextImage, 60000);
