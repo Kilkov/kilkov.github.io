@@ -14,7 +14,7 @@ const images = [
     "images/art13.jpg",
     "images/art14.jpg",
     "images/art15.jpg",
-    "images/art16.jpg",
+    "images/art16.jpg"
 ];
 
 let currentIndex = 0;
