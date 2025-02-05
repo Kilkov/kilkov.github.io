@@ -24,8 +24,8 @@ function prevImage() {
     showImage(currentIndex);
 }
 
-prevButton.addEventListener("click", Image);
-nextButton.addEventListener("click", Image);
+prevButton.addEventListener("click", prevImage);
+nextButton.addEventListener("click", nextImage);
 
 // Auto-change images every 120 seconds (120000 ms)
 setInterval(nextImage, 120000);
