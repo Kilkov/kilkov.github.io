@@ -53,3 +53,8 @@ img {
 .nav-button:hover {
     background: rgba(0, 0, 0, 0.8);
 }
+@media (max-width: 768px) {
+    img {
+        width: 90%;
+    }
+}
