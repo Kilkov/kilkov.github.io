@@ -27,6 +27,7 @@ img {
     height: auto; /* Maintains aspect ratio */
     max-height: 80vh; /* Ensures it doesn’t get too tall */
     object-fit: contain; /* Ensures the entire image is visible */
+    transition: opacity 0.5s ease-in-out;
 }
 
 .nav-button {
@@ -36,9 +37,9 @@ img {
     background: none;
     color: white;
     border: none;
-    font-size: 40px;  /* Make arrows larger */
+    font-size: 30px;  /* Make arrows larger */
     cursor: pointer;
-    padding: 10px;  /* Ensure they are easy to click */
+    padding: 50px;  /* Ensure they are easy to click */
 }
 
 #prev {
