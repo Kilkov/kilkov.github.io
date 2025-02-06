@@ -3,7 +3,8 @@ const images = [
     "images/art2.jpg",
     "images/art3.jpg",
     "images/art4.jpg",
-    "images/art5.jpg"
+    "images/art5.jpg",
+    "images/art6.jpg"
 ];
 
 let currentIndex = 0;
