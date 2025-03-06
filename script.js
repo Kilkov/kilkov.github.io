@@ -1,4 +1,4 @@
-const images = [
+const media = [
     "images/art1.jpg",
     "videos/short1.mp4",
     "images/art2.jpg",
