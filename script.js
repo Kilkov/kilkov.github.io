@@ -1,13 +1,19 @@
 const images = [
     "images/art1.jpg",
+    "videos/short1.mp4",
     "images/art2.jpg",
     "images/art3.jpg",
     "images/art4.jpg",
+    "videos/short2.mp4",
     "images/art5.jpg",
+    "videos/short3.mp4",
     "images/art6.jpg",
     "images/art7.jpg",
+    "videos/short4.mp4",
     "images/art8.jpg",
+    "videos/short5.mp4",
     "images/art9.jpg",
+    "videos/short6.mp4",
     "images/art10.jpg"
 ];
 
