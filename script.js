@@ -12,26 +12,44 @@ const images = [
 ];
 
 let currentIndex = 0;
-const artwork = document.getElementById("artwork");
+const artworkContainer = document.getElementById("artwork-container");
 const prevButton = document.getElementById("prev");
 const nextButton = document.getElementById("next");
 
-function showImage(index) {
-    artwork.src = images[index];
+function showMedia(index) {
+    artworkContainer.innerHTML = ""; // Clear previous content
+    const mediaSrc = media[index];
+    if (mediaSrc.endsWith(".mp4")) {
+        const video = document.createElement("video");
+        video.src = mediaSrc;
+        video.controls = true;
+        video.autoplay = true;
+        video.loop = true;
+        video.style.maxWidth = "100%";
+        artworkContainer.appendChild(video);
+    } else {
+        const img = document.createElement("img");
+        img.src = mediaSrc;
+        img.style.maxWidth = "100%";
+        artworkContainer.appendChild(img);
+    }
 }
 
-function nextImage() {
-    currentIndex = (currentIndex + 1) % images.length;
-    showImage(currentIndex);
+function nextMedia() {
+    currentIndex = (currentIndex + 1) % media.length;
+    showMedia(currentIndex);
 }
 
-function prevImage() {
-    currentIndex = (currentIndex - 1 + images.length) % images.length;
-    showImage(currentIndex);
+function prevMedia() {
+    currentIndex = (currentIndex - 1 + media.length) % media.length;
+    showMedia(currentIndex);
 }
 
-prevButton.addEventListener("click", prevImage);
-nextButton.addEventListener("click", nextImage);
+prevButton.addEventListener("click", prevMedia);
+nextButton.addEventListener("click", nextMedia);
 
-// Auto-change images every 60 seconds (120000 ms)
-setInterval(nextImage, 60000);
+// Auto-change media every 60 seconds
+setInterval(nextMedia, 60000);
+
+// Show the first media item initially
+showMedia(currentIndex);
