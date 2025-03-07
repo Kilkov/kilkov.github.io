@@ -37,11 +37,51 @@ body {
 .nav-button {
     position: absolute;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%); /* Centers the button correctly */
     background: rgba(255, 255, 255, 0.2); /* Slightly visible background */
     color: white;
     border: none;
     font-size: 40px;  /* Increase arrow size */
     cursor: pointer;
-    padding: 20px;  /* Adjusted padding */
+    padding: 15px 20px;  /* Adjusted padding */
+    border-radius: 50%; /* Circular button */
+    transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px; /* Set a fixed width */
+    height: 60px; /* Set a fixed height */
+}
+
+/* Positioning for navigation buttons */
+#prev {
+    left: 10px;  /* Move closer to the edge */
+}
+
+#next {
+    right: 10px; /* Move closer to the edge */
+}
+
+/* Hover effect for buttons */
+.nav-button:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .nav-button {
+        font-size: 30px; /* Reduce button size for mobile */
+        width: 50px;
+        height: 50px;
+        padding: 10px;
+    }
+
+    #prev {
+        left: 5px; /* Adjusted for mobile */
+    }
+
+    #next {
+        right: 5px; /* Adjusted for mobile */
+    }
+}*/
     border-radius: 
