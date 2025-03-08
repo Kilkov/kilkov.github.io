@@ -14,7 +14,8 @@ const media = [
     "videos/short5.mp4",
     "images/art9.jpg",
     "videos/short6.mp4",
-    "images/art10.jpg"
+    "images/art10.jpg",
+    "images/art12.jpg"
 ];
 
 let currentIndex = 0;
