@@ -1,4 +1,5 @@
 const media = [
+    "videos/short7.mp4",
     "images/art1.jpg",
     "videos/short1.mp4",
     "images/art2.jpg",
