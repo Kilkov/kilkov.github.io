@@ -2,72 +2,797 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Supabase Test</title>
+  <title>Pazarski list</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
+    .app {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    h1 {
+      margin-top: 0;
+      text-align: center;
+    }
+    h2 {
+      margin-top: 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+      margin-bottom: 16px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr);
+      gap: 16px;
+    }
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+    .list-form, .item-form {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+    .list-form input, .item-form input {
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      flex: 1;
+      min-width: 0;
+    }
+    button.primary {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: none;
+      background: #2563eb;
+      color: white;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.secondary {
+      padding: 6px 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      background: #f5f5f5;
+      color: #111;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    button.primary:disabled, button.secondary:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .items-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      margin-top: 8px;
+    }
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 6px 0;
+      border-bottom: 1px solid #eee;
+      gap: 8px;
+    }
+    .item-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+    }
+    .item-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .item-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      font-size: 11px;
+      color: #555;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #666;
+      margin-top: 16px;
+    }
+    .log-list {
+      list-style: none;
+      margin: 8px 0 0;
+      padding: 0;
+      max-height: 260px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+    .log-entry {
+      border-bottom: 1px solid #eee;
+      padding: 4px 0;
+    }
+    .log-entry-time {
+      color: #777;
+      font-size: 11px;
+    }
+    .section-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-text {
+      font-size: 12px;
+      color: #555;
+      margin-top: 4px;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #e5e7eb;
+      color: #374151;
+    }
+    .auth-card {
+      max-width: 400px;
+      margin: 40px auto;
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .auth-form input {
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .auth-toggle {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+    .auth-toggle button {
+      border: none;
+      background: none;
+      color: #2563eb;
+      cursor: pointer;
+      padding: 0;
+    }
+    .auth-message {
+      font-size: 13px;
+      margin-top: 8px;
+    }
+    .auth-message.error {
+      color: #b91c1c;
+    }
+    .auth-message.info {
+      color: #2563eb;
+    }
+  </style>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <h1>Supabase connection test</h1>
-  <pre id="output">Testing...</pre>
+  <!-- Auth container -->
+  <div id="authContainer">
+    <div class="card auth-card">
+      <h2 style="text-align:center;">Pazarski list</h2>
+      <p style="text-align:center;font-size:13px;color:#555;">
+        Login or register to access your grocery list from any device.
+      </p>
+      <form id="authForm" class="auth-form">
+        <input id="authEmail" type="email" placeholder="Email" required />
+        <input id="authPassword" type="password" placeholder="Password" required />
+        <button type="submit" class="primary" id="authSubmitBtn">Login</button>
+      </form>
+      <div class="auth-toggle">
+        <span id="authToggleText">Need an account?</span>
+        <button id="authToggleBtn" type="button">Register</button>
+      </div>
+      <p id="authMessage" class="auth-message"></p>
+    </div>
+  </div>
 
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script>
-// 1) PUT YOUR VALUES HERE
-const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co';      // <- exact Config/API URL
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // <- anon public key
+  <!-- Main app container (hidden until logged in) -->
+  <div id="appContainer" style="display:none;">
+    <div class="app">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="section-title-row">
+          <h1 style="margin:0;">Pazarski list</h1>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <span id="userEmailTag" class="tag"></span>
+            <button id="logoutBtn" class="secondary" type="button">Logout</button>
+          </div>
+        </div>
+      </div>
 
-console.log('Supabase URL:', SUPABASE_URL);
-console.log('Supabase anon key starts with:', SUPABASE_ANON_KEY.slice(0, 10));
+      <div class="layout">
+        <div>
+          <div class="card">
+            <div class="section-title-row">
+              <strong>Current list</strong>
+              <button id="newListBtn" class="secondary" type="button">New list</button>
+            </div>
+            <p class="info-text" id="shareInfo">
+              This list is tied to your account. Log in with the same email on another device to use it there.
+            </p>
 
-let supabaseClient;
-try {
-  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  console.log('Supabase client created:', !!supabaseClient);
-} catch (e) {
-  console.error('Error creating Supabase client:', e);
-}
+            <form class="list-form" id="listTitleForm">
+              <input
+                id="listTitleInput"
+                type="text"
+                placeholder="List title"
+                autocomplete="off"
+              />
+              <button type="submit" class="primary">Save title</button>
+            </form>
+          </div>
 
-const out = document.getElementById('output');
+          <div class="card" id="currentListCard" style="display:none;">
+            <div class="section-title-row">
+              <h2 id="currentListTitle" style="margin:0;"></h2>
+              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <span id="totalPriceTag" class="tag" style="display:none;"></span>
+              </div>
+            </div>
 
-async function testSupabase() {
-  try {
-    out.textContent = 'Creating test list...';
+            <form class="item-form" id="itemForm">
+              <input id="itemNameInput" type="text" placeholder="Item" autocomplete="off" />
+              <input id="itemQtyInput" type="text" placeholder="Qty (e.g. 2, 1kg)" autocomplete="off" />
+              <input id="itemPriceInput" type="number" step="0.01" min="0" placeholder="Price" autocomplete="off" />
+              <input id="itemShopInput" type="text" placeholder="Shop" autocomplete="off" />
+              <input id="itemCatInput" type="text" placeholder="Category (e.g. Dairy)" autocomplete="off" />
+              <button type="submit" class="primary">Add item</button>
+            </form>
 
-    const { data, error } = await supabaseClient
-      .from('lists')
-      .insert({ title: 'Test list from GitHub Pages', items: [] })
-      .select()
-      .single();
+            <ul class="items-list" id="itemsList"></ul>
+          </div>
+        </div>
 
-    console.log('Insert result:', { data, error });
+        <div>
+          <div class="card">
+            <div class="section-title-row">
+              <strong>Item log (local to this device)</strong>
+              <button id="clearLogBtn" class="secondary" type="button" style="font-size:11px;">
+                Clear log
+              </button>
+            </div>
+            <ul class="log-list" id="logList"></ul>
+          </div>
+        </div>
+      </div>
 
-    if (error) {
-      out.textContent = 'Insert error:\n' + JSON.stringify(error, null, 2);
-      return;
+      <div class="footer">
+        Lists are stored in Supabase tied to your account. Log is stored locally in this browser.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Supabase config: replace with your values ---
+    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co'; // TODO: replace with your project URL
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // TODO: replace with your anon public key
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // --- Local log ---
+    const LOG_STORAGE_KEY = 'grocery_log_auth_v1';
+
+    function loadLog() {
+      try {
+        const raw = localStorage.getItem(LOG_STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
     }
 
-    out.textContent = 'Insert OK:\n' + JSON.stringify(data, null, 2);
-
-    const { data: rows, error: selError } = await supabaseClient
-      .from('lists')
-      .select('*')
-      .limit(5);
-
-    console.log('Select result:', { rows, selError });
-
-    if (selError) {
-      out.textContent += '\n\nSelect error:\n' + JSON.stringify(selError, null, 2);
-      return;
+    function saveLog(log) {
+      localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log));
     }
 
-    out.textContent += '\n\nSelect OK:\n' + JSON.stringify(rows, null, 2);
-  } catch (e) {
-    console.error('Unexpected error in testSupabase:', e);
-    out.textContent = 'Unexpected error: ' + e.toString();
-  }
-}
+    function generateLocalId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
 
-testSupabase();
-</script>
+    function formatDateTime(iso) {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString();
+      } catch {
+        return iso;
+      }
+    }
+
+    // --- Auth DOM references ---
+    const authContainer = document.getElementById('authContainer');
+    const appContainer = document.getElementById('appContainer');
+    const authForm = document.getElementById('authForm');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authMessage = document.getElementById('authMessage');
+    const authToggleBtn = document.getElementById('authToggleBtn');
+    const authToggleText = document.getElementById('authToggleText');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+
+    const userEmailTag = document.getElementById('userEmailTag');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // --- App DOM references ---
+    const listTitleForm = document.getElementById('listTitleForm');
+    const listTitleInput = document.getElementById('listTitleInput');
+    const newListBtn = document.getElementById('newListBtn');
+
+    const currentListCard = document.getElementById('currentListCard');
+    const currentListTitle = document.getElementById('currentListTitle');
+    const totalPriceTag = document.getElementById('totalPriceTag');
+
+    const itemForm = document.getElementById('itemForm');
+    const itemNameInput = document.getElementById('itemNameInput');
+    const itemQtyInput = document.getElementById('itemQtyInput');
+    const itemPriceInput = document.getElementById('itemPriceInput');
+    const itemShopInput = document.getElementById('itemShopInput');
+    const itemCatInput = document.getElementById('itemCatInput');
+    const itemsList = document.getElementById('itemsList');
+
+    const logList = document.getElementById('logList');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+
+    // --- State ---
+    let currentUser = null;
+    let currentList = null; // { id, user_id, title, items, ... }
+    let logEntries = loadLog();
+    let authMode = 'login'; // 'login' or 'register'
+
+    // --- Auth helpers ---
+    function showApp() {
+      authContainer.style.display = 'none';
+      appContainer.style.display = 'block';
+    }
+
+    function showAuth() {
+      authContainer.style.display = 'block';
+      appContainer.style.display = 'none';
+    }
+
+    function setAuthMode(mode) {
+      authMode = mode;
+      authMessage.textContent = '';
+      authMessage.className = 'auth-message';
+
+      if (mode === 'login') {
+        authSubmitBtn.textContent = 'Login';
+        authToggleText.textContent = 'Need an account?';
+        authToggleBtn.textContent = 'Register';
+      } else {
+        authSubmitBtn.textContent = 'Register';
+        authToggleText.textContent = 'Already have an account?';
+        authToggleBtn.textContent = 'Login';
+      }
+    }
+
+    authToggleBtn.addEventListener('click', () => {
+      setAuthMode(authMode === 'login' ? 'register' : 'login');
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authMessage.textContent = '';
+      authMessage.className = 'auth-message';
+
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+
+      if (!email || !password) {
+        authMessage.textContent = 'Please enter email and password.';
+        authMessage.classList.add('error');
+        return;
+      }
+
+      try {
+        if (authMode === 'register') {
+          const { data, error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          authMessage.textContent = 'Registered. Please log in with your email and password.';
+          authMessage.classList.add('info');
+          setAuthMode('login');
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          currentUser = data.user;
+          userEmailTag.textContent = currentUser.email || '';
+          showApp();
+          await initAppAfterLogin();
+        }
+      } catch (err) {
+        authMessage.textContent = err.message || 'Authentication error';
+        authMessage.classList.add('error');
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      currentList = null;
+      userEmailTag.textContent = '';
+      showAuth();
+    });
+
+    // --- Log helpers ---
+    function addLogEntry(type, payload) {
+      const entry = {
+        id: generateLocalId(),
+        type,
+        payload,
+        timestamp: new Date().toISOString()
+      };
+      logEntries.unshift(entry);
+      if (logEntries.length > 500) {
+        logEntries = logEntries.slice(0, 500);
+      }
+      saveLog(logEntries);
+      renderLog();
+    }
+
+    function renderLog() {
+      logList.innerHTML = '';
+      if (logEntries.length === 0) {
+        logList.innerHTML = '<li style="color:#666;font-size:12px;margin-top:4px;">No log entries yet.</li>';
+        return;
+      }
+
+      logEntries.forEach(entry => {
+        const li = document.createElement('li');
+        li.className = 'log-entry';
+
+        const line = document.createElement('div');
+        const t = entry.type;
+        const p = entry.payload || {};
+        let text = '';
+
+        if (t === 'item_added') {
+          text = `Added "${p.itemName}"`;
+          if (p.quantity) text += ` (qty: ${p.quantity})`;
+          if (p.price != null && p.price !== '') text += ` price: ${p.price}`;
+          if (p.shop) text += ` shop: ${p.shop}`;
+        } else if (t === 'item_removed') {
+          text = `Removed "${p.itemName}"`;
+        } else if (t === 'list_title_changed') {
+          text = `Renamed list to "${p.title}"`;
+        } else if (t === 'list_created') {
+          text = `Created new list "${p.title}"`;
+        } else {
+          text = t;
+        }
+
+        line.textContent = text;
+
+        const time = document.createElement('div');
+        time.className = 'log-entry-time';
+        time.textContent = formatDateTime(entry.timestamp);
+
+        li.appendChild(line);
+        li.appendChild(time);
+        logList.appendChild(li);
+      });
+    }
+
+    clearLogBtn.addEventListener('click', () => {
+      if (!confirm('Clear the item log on this device?')) return;
+      logEntries = [];
+      saveLog(logEntries);
+      renderLog();
+    });
+
+    // --- App logic: lists and items ---
+    async function loadOrCreateListForUser() {
+      const { data: lists, error } = await supabaseClient
+        .from('lists')
+        .select('*')
+        .eq('user_id', currentUser.id)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+      if (error) {
+        console.error('Error fetching lists', error);
+        return null;
+      }
+
+      if (lists && lists.length > 0) {
+        return lists[0];
+      }
+
+      const { data: newList, error: insError } = await supabaseClient
+        .from('lists')
+        .insert({
+          title: 'My grocery list',
+          items: [],
+          user_id: currentUser.id
+        })
+        .select()
+        .single();
+
+      if (insError) {
+        console.error('Error creating list', insError);
+        return null;
+      }
+
+      addLogEntry('list_created', { title: newList.title });
+      return newList;
+    }
+
+    async function saveListPartial(partial) {
+      if (!currentList) return null;
+      const { data, error } = await supabaseClient
+        .from('lists')
+        .update({
+          ...partial,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', currentList.id)
+        .eq('user_id', currentUser.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error saving list', error);
+        alert('Error saving list. Check console for details.');
+        return null;
+      }
+      return data;
+    }
+
+    function renderCurrentList() {
+      if (!currentList) {
+        currentListCard.style.display = 'none';
+        return;
+      }
+
+      currentListCard.style.display = 'block';
+      currentListTitle.textContent = currentList.title || 'My grocery list';
+      listTitleInput.value = currentList.title || '';
+
+      const items = currentList.items || [];
+      itemsList.innerHTML = '';
+      if (items.length === 0) {
+        itemsList.innerHTML = '<li style="color:#666;font-size:14px;margin-top:8px;">No items yet.</li>';
+      } else {
+        let total = 0;
+        items.forEach(item => {
+          if (item.price != null && item.price !== '') {
+            const num = Number(item.price);
+            if (!isNaN(num)) total += num;
+          }
+
+          const li = document.createElement('li');
+          li.className = 'item-row';
+
+          const labelWrapper = document.createElement('div');
+          labelWrapper.style.flex = '1';
+
+          const topRow = document.createElement('div');
+          topRow.className = 'item-label';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = item.done;
+          checkbox.addEventListener('change', async () => {
+            item.done = !item.done;
+            const updated = await saveListPartial({ items: currentList.items });
+            if (updated) {
+              currentList = updated;
+              renderCurrentList();
+            }
+          });
+
+          const textSpan = document.createElement('span');
+          textSpan.className = 'item-text';
+          textSpan.style.textDecoration = item.done ? 'line-through' : 'none';
+          textSpan.style.color = item.done ? '#888' : '#111';
+
+          let text = item.name;
+          if (item.quantity) text += ' (' + item.quantity + ')';
+          textSpan.textContent = text;
+
+          topRow.appendChild(checkbox);
+          topRow.appendChild(textSpan);
+
+          const metaRow = document.createElement('div');
+          metaRow.className = 'item-meta';
+
+          if (item.category) {
+            const cat = document.createElement('span');
+            cat.className = 'badge';
+            cat.textContent = item.category;
+            metaRow.appendChild(cat);
+          }
+
+          if (item.shop) {
+            const shopSpan = document.createElement('span');
+            shopSpan.textContent = 'Shop: ' + item.shop;
+            metaRow.appendChild(shopSpan);
+          }
+
+          if (item.price != null && item.price !== '') {
+            const priceSpan = document.createElement('span');
+            priceSpan.textContent = 'Price: ' + item.price;
+            metaRow.appendChild(priceSpan);
+          }
+
+          labelWrapper.appendChild(topRow);
+          if (metaRow.children.length > 0) {
+            labelWrapper.appendChild(metaRow);
+          }
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.textContent = '×';
+          deleteBtn.title = 'Remove item';
+          deleteBtn.style.border = 'none';
+          deleteBtn.style.background = 'transparent';
+          deleteBtn.style.cursor = 'pointer';
+          deleteBtn.style.color = '#c00';
+          deleteBtn.style.fontSize = '16px';
+          deleteBtn.addEventListener('click', async () => {
+            currentList.items = currentList.items.filter(it => it.id !== item.id);
+            const updated = await saveListPartial({ items: currentList.items });
+            if (updated) {
+              currentList = updated;
+              addLogEntry('item_removed', {
+                itemName: item.name,
+                quantity: item.quantity,
+                price: item.price,
+                shop: item.shop
+              });
+              renderCurrentList();
+            }
+          });
+
+          li.appendChild(labelWrapper);
+          li.appendChild(deleteBtn);
+          itemsList.appendChild(li);
+        });
+
+        if (total > 0) {
+          totalPriceTag.style.display = 'inline-block';
+          totalPriceTag.textContent = 'Total price: ' + total.toFixed(2);
+        } else {
+          totalPriceTag.style.display = 'none';
+        }
+      }
+    }
+
+    function renderAll() {
+      renderCurrentList();
+      renderLog();
+    }
+
+    listTitleForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentList) return;
+      const title = listTitleInput.value.trim() || 'My grocery list';
+      const updated = await saveListPartial({ title });
+      if (updated) {
+        currentList = updated;
+        addLogEntry('list_title_changed', { title });
+        renderAll();
+      }
+    });
+
+    itemForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentList) return;
+
+      const name = itemNameInput.value.trim();
+      const qty = itemQtyInput.value.trim();
+      const priceRaw = itemPriceInput.value.trim();
+      const shop = itemShopInput.value.trim();
+      const cat = itemCatInput.value.trim();
+      if (!name) return;
+
+      const price = priceRaw === '' ? null : priceRaw;
+
+      const newItem = {
+        id: generateLocalId(),
+        name,
+        quantity: qty || null,
+        price,
+        shop: shop || null,
+        category: cat || null,
+        done: false
+      };
+
+      currentList.items = currentList.items || [];
+      currentList.items.push(newItem);
+      const updated = await saveListPartial({ items: currentList.items });
+      if (updated) {
+        currentList = updated;
+        addLogEntry('item_added', {
+          itemName: name,
+          quantity: newItem.quantity,
+          price: newItem.price,
+          shop: newItem.shop
+        });
+        itemNameInput.value = '';
+        itemQtyInput.value = '';
+        itemPriceInput.value = '';
+        itemShopInput.value = '';
+        itemCatInput.value = '';
+        renderCurrentList();
+      }
+    });
+
+    newListBtn.addEventListener('click', async () => {
+      if (!currentUser) return;
+      if (!confirm('Create a new empty list? The old one will remain in the database but this app will use the new one.')) return;
+      const title = prompt('New list title:', 'My grocery list');
+      const finalTitle = (title || 'My grocery list').trim();
+      const { data: newList, error } = await supabaseClient
+        .from('lists')
+        .insert({
+          title: finalTitle,
+          items: [],
+          user_id: currentUser.id
+        })
+        .select()
+        .single();
+      if (error) {
+        console.error('Error creating new list', error);
+        alert('Error creating new list.');
+        return;
+      }
+      currentList = newList;
+      addLogEntry('list_created', { title: finalTitle });
+      renderAll();
+    });
+
+    async function initAppAfterLogin() {
+      const list = await loadOrCreateListForUser();
+      currentList = list;
+      renderAll();
+    }
+
+    async function checkExistingSession() {
+      const { data, error } = await supabaseClient.auth.getSession();
+      if (data?.session?.user) {
+        currentUser = data.session.user;
+        userEmailTag.textContent = currentUser.email || '';
+        showApp();
+        await initAppAfterLogin();
+      } else {
+        showAuth();
+      }
+    }
+
+    // Init
+    setAuthMode('login');
+    renderLog();
+    checkExistingSession();
+  </script>
 </body>
 </html>
