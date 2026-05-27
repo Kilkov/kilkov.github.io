@@ -10,57 +10,64 @@
   <h1>Supabase connection test</h1>
   <pre id="output">Testing...</pre>
 
-  <script>
-    // 1) PUT YOUR VALUES HERE
-    const SUPABASE_URL = 'yuyzpgfgynxiuqgcvhhe';      // <- Config/API URL
-    const SUPABASE_ANON_KEY = 'sb_publishable_z463erMxkY_iDjPnm47Epw_Xu0WnWW7'; // <- anon public key
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script>
+// 1) PUT YOUR VALUES HERE
+const SUPABASE_URL = 'yuyzpgfgynxiuqgcvhhe';      // <- exact Config/API URL
+const SUPABASE_ANON_KEY = 'sb_publishable_z463erMxkY_iDjPnm47Epw_Xu0WnWW7'; // <- anon public key
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+console.log('Supabase URL:', SUPABASE_URL);
+console.log('Supabase anon key starts with:', SUPABASE_ANON_KEY.slice(0, 10));
 
-    const out = document.getElementById('output');
+let supabaseClient;
+try {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  console.log('Supabase client created:', !!supabaseClient);
+} catch (e) {
+  console.error('Error creating Supabase client:', e);
+}
 
-    async function testSupabase() {
-      try {
-        out.textContent = 'Creating test list...';
+const out = document.getElementById('output');
 
-        // 2) Try to insert one row into public.lists
-        const { data, error } = await supabase
-          .from('lists')
-          .insert({ title: 'Test list from Netlify', items: [] })
-          .select()
-          .single();
+async function testSupabase() {
+  try {
+    out.textContent = 'Creating test list...';
 
-        if (error) {
-          console.error('Insert error:', error);
-          out.textContent = 'Insert error: ' + JSON.stringify(error, null, 2);
-          return;
-        }
+    const { data, error } = await supabaseClient
+      .from('lists')
+      .insert({ title: 'Test list from GitHub Pages', items: [] })
+      .select()
+      .single();
 
-        console.log('Insert ok:', data);
-        out.textContent = 'Insert OK:\n' + JSON.stringify(data, null, 2);
+    console.log('Insert result:', { data, error });
 
-        // 3) Try to read it back
-        const { data: rows, error: selError } = await supabase
-          .from('lists')
-          .select('*')
-          .limit(5);
-
-        if (selError) {
-          console.error('Select error:', selError);
-          out.textContent += '\n\nSelect error:\n' + JSON.stringify(selError, null, 2);
-          return;
-        }
-
-        console.log('Select ok:', rows);
-        out.textContent += '\n\nSelect OK:\n' + JSON.stringify(rows, null, 2);
-
-      } catch (e) {
-        console.error('Unexpected error:', e);
-        out.textContent = 'Unexpected error: ' + e.toString();
-      }
+    if (error) {
+      out.textContent = 'Insert error:\n' + JSON.stringify(error, null, 2);
+      return;
     }
 
-    testSupabase();
-  </script>
+    out.textContent = 'Insert OK:\n' + JSON.stringify(data, null, 2);
+
+    const { data: rows, error: selError } = await supabaseClient
+      .from('lists')
+      .select('*')
+      .limit(5);
+
+    console.log('Select result:', { rows, selError });
+
+    if (selError) {
+      out.textContent += '\n\nSelect error:\n' + JSON.stringify(selError, null, 2);
+      return;
+    }
+
+    out.textContent += '\n\nSelect OK:\n' + JSON.stringify(rows, null, 2);
+  } catch (e) {
+    console.error('Unexpected error in testSupabase:', e);
+    out.textContent = 'Unexpected error: ' + e.toString();
+  }
+}
+
+testSupabase();
+</script>
 </body>
 </html>
