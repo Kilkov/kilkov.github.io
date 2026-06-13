@@ -324,8 +324,8 @@
             <h1>Shopping list</h1>
             <span id="currentListStatusTag" class="tag"></span>
           </div>
-          <p class="info-text">
-            Lists are tied to your account. Subtotals are shown per category.
+          <p class="info-text" id="shareInfo">
+            Lists are tied to your account. Later we can add sharing/email features here.
           </p>
 
           <form class="list-form" id="listTitleForm">
@@ -348,7 +348,589 @@
                 <span id="totalPriceTag" class="tag" style="display:none;"></span>
               </div>
 
+              <!-- Add-item row -->
               <form class="item-form" id="itemForm">
                 <input id="itemNameInput" type="text" placeholder="Item" autocomplete="off" />
                 <input id="itemQtyInput" type="text" placeholder="Qty (e.g. 2, 1kg)" autocomplete="off" />
-                <input
+                <input id="itemPriceInput" type="number" step="0.01" min="0" placeholder="Price" autocomplete="off" />
+                <input id="itemShopInput" type="text" placeholder="Shop" autocomplete="off" />
+                <select id="itemCatSelect">
+                  <option value="Fruits">Fruits</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Dairy">Dairy</option>
+                  <option value="Bread">Bread</option>
+                  <option value="Meat">Meat</option>
+                  <option value="Fish">Fish</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Frozen">Frozen</option>
+                  <option value="Drinks">Drinks</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Cleaning">Cleaning</option>
+                  <option value="Hygiene">Hygiene</option>
+                  <option value="Baby">Baby</option>
+                  <option value="Pets">Pets</option>
+                  <option value="Pharmacy">Pharmacy</option>
+                  <option value="Other">Other</option>
+                </select>
+                <button type="submit" class="primary">Add item</button>
+              </form>
+
+              <div id="itemsContainer"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          Lists are stored in Supabase tied to your account.
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co'; // TODO
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // TODO
+
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    const CATEGORIES = [
+      'Fruits',
+      'Vegetables',
+      'Dairy',
+      'Bread',
+      'Meat',
+      'Fish',
+      'Pantry',
+      'Frozen',
+      'Drinks',
+      'Snacks',
+      'Cleaning',
+      'Hygiene',
+      'Baby',
+      'Pets',
+      'Pharmacy',
+      'Other'
+    ];
+
+    function generateLocalId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function formatDateTimeForTitle() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day} ${hh}:${mm}`;
+    }
+
+    function autoListTitle(base = 'My grocery list') {
+      return `${base} – ${formatDateTimeForTitle()}`;
+    }
+
+    // Auth DOM
+    const authContainer = document.getElementById('authContainer');
+    const appContainer = document.getElementById('appContainer');
+    const authForm = document.getElementById('authForm');
+    const authEmail = document.getElementById('authEmail');
+    const authPassword = document.getElementById('authPassword');
+    const authMessage = document.getElementById('authMessage');
+    const authToggleBtn = document.getElementById('authToggleBtn');
+    const authToggleText = document.getElementById('authToggleText');
+    const authSubmitBtn = document.getElementById('authSubmitBtn');
+
+    const sidebarUserEmail = document.getElementById('sidebarUserEmail');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const activeListsSidebar = document.getElementById('activeListsSidebar');
+    const archivedListsSidebar = document.getElementById('archivedListsSidebar');
+    const newListBtn = document.getElementById('newListBtn');
+
+    const listTitleForm = document.getElementById('listTitleForm');
+    const listTitleInput = document.getElementById('listTitleInput');
+    const currentListStatusTag = document.getElementById('currentListStatusTag');
+    const completeListBtn = document.getElementById('completeListBtn');
+
+    const currentListCard = document.getElementById('currentListCard');
+    const currentListTitle = document.getElementById('currentListTitle');
+    const totalPriceTag = document.getElementById('totalPriceTag');
+
+    const itemForm = document.getElementById('itemForm');
+    const itemNameInput = document.getElementById('itemNameInput');
+    const itemQtyInput = document.getElementById('itemQtyInput');
+    const itemPriceInput = document.getElementById('itemPriceInput');
+    const itemShopInput = document.getElementById('itemShopInput');
+    const itemCatSelect = document.getElementById('itemCatSelect');
+    const itemsContainer = document.getElementById('itemsContainer');
+
+    // State
+    let currentUser = null;
+    let lists = [];
+    let currentListId = null;
+    let authMode = 'login';
+
+    // Auth helpers
+    function showApp() {
+      authContainer.style.display = 'none';
+      appContainer.style.display = 'block';
+    }
+    function showAuth() {
+      authContainer.style.display = 'block';
+      appContainer.style.display = 'none';
+    }
+    function setAuthMode(mode) {
+      authMode = mode;
+      authMessage.textContent = '';
+      authMessage.className = 'auth-message';
+      if (mode === 'login') {
+        authSubmitBtn.textContent = 'Login';
+        authToggleText.textContent = 'Need an account?';
+        authToggleBtn.textContent = 'Register';
+      } else {
+        authSubmitBtn.textContent = 'Register';
+        authToggleText.textContent = 'Already have an account?';
+        authToggleBtn.textContent = 'Login';
+      }
+    }
+
+    authToggleBtn.addEventListener('click', () => {
+      setAuthMode(authMode === 'login' ? 'register' : 'login');
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authMessage.textContent = '';
+      authMessage.className = 'auth-message';
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if (!email || !password) {
+        authMessage.textContent = 'Please enter email and password.';
+        authMessage.classList.add('error');
+        return;
+      }
+      try {
+        if (authMode === 'register') {
+          const { error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          authMessage.textContent = 'Registered. Please log in.';
+          authMessage.classList.add('info');
+          setAuthMode('login');
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) throw error;
+          currentUser = data.user;
+          sidebarUserEmail.textContent = currentUser.email || '';
+          showApp();
+          await initAppAfterLogin();
+        }
+      } catch (err) {
+        authMessage.textContent = err.message || 'Authentication error';
+        authMessage.classList.add('error');
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      currentUser = null;
+      lists = [];
+      currentListId = null;
+      sidebarUserEmail.textContent = '';
+      showAuth();
+    });
+
+    // Data helpers
+    function getCurrentList() {
+      return lists.find((l) => l.id === currentListId) || null;
+    }
+
+    async function fetchLists() {
+      const { data, error } = await supabaseClient
+        .from('lists')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (error) {
+        console.error('Error fetching lists', error);
+        return [];
+      }
+      // we rely on RLS to only return owned/shared lists
+      return data || [];
+    }
+
+    async function saveListPartial(listId, partial) {
+      const { data, error } = await supabaseClient
+        .from('lists')
+        .update({
+          ...partial,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', listId)
+        .select()
+        .single();
+      if (error) {
+        console.error('Error saving list', error);
+        alert('Error saving list. Check console.');
+        return null;
+      }
+      return data;
+    }
+
+    async function createNewList(title, items = [], status = 'active') {
+      const { data, error } = await supabaseClient
+        .from('lists')
+        .insert({
+          title,
+          items,
+          status,
+          user_id: currentUser.id
+        })
+        .select()
+        .single();
+      if (error) {
+        console.error('Error creating list', error);
+        alert('Error creating list.');
+        return null;
+      }
+      return data;
+    }
+
+    // Sidebar rendering
+    function renderSidebar() {
+      activeListsSidebar.innerHTML = '';
+      archivedListsSidebar.innerHTML = '';
+      const activeLists = lists.filter((l) => l.status === 'active');
+      const archivedLists = lists.filter((l) => l.status === 'archived');
+
+      if (activeLists.length === 0) {
+        activeListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
+      } else {
+        activeLists.forEach((list) => {
+          const li = document.createElement('li');
+          li.className =
+            'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+          li.addEventListener('click', () => {
+            currentListId = list.id;
+            renderAll();
+          });
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+          activeListsSidebar.appendChild(li);
+        });
+      }
+
+      if (archivedLists.length === 0) {
+        archivedListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+      } else {
+        archivedLists.forEach((list) => {
+          const li = document.createElement('li');
+          li.className = 'sidebar-list-item readonly';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+          const reuseBtn = document.createElement('button');
+          reuseBtn.type = 'button';
+          reuseBtn.textContent = '↩';
+          reuseBtn.title = 'Reuse this list';
+          reuseBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const resetItems = (list.items || []).map((it) => ({
+              ...it,
+              done: false
+            }));
+            const newTitle = autoListTitle(list.title);
+            const newList = await createNewList(newTitle, resetItems, 'active');
+            if (newList) {
+              lists.push(newList);
+              currentListId = newList.id;
+              renderAll();
+            }
+          });
+          li.appendChild(reuseBtn);
+          archivedListsSidebar.appendChild(li);
+        });
+      }
+    }
+
+    // Current list / tables
+    function renderCurrentList() {
+      const list = getCurrentList();
+      if (!list) {
+        currentListCard.style.display = 'none';
+        currentListStatusTag.textContent = '';
+        return;
+      }
+      currentListCard.style.display = 'block';
+      currentListTitle.textContent = list.title;
+      listTitleInput.value = list.title;
+      currentListStatusTag.textContent =
+        list.status === 'archived' ? 'Archived' : 'Active';
+
+      const isArchived = list.status === 'archived';
+      itemForm.style.display = isArchived ? 'none' : 'flex';
+      completeListBtn.disabled = isArchived;
+
+      const items = list.items || [];
+      itemsContainer.innerHTML = '';
+
+      // totals
+      let totalAll = 0;
+      const totalsByCat = {};
+      CATEGORIES.forEach((c) => (totalsByCat[c] = 0));
+
+      items.forEach((item) => {
+        if (item.price != null && item.price !== '') {
+          const num = Number(item.price);
+          if (!isNaN(num)) {
+            totalAll += num;
+            const cat =
+              item.category && CATEGORIES.includes(item.category)
+                ? item.category
+                : 'Other';
+            totalsByCat[cat] += num;
+          }
+        }
+      });
+
+      if (totalAll > 0) {
+        totalPriceTag.style.display = 'inline-block';
+        totalPriceTag.textContent = 'Total: ' + totalAll.toFixed(2);
+      } else {
+        totalPriceTag.style.display = 'none';
+      }
+
+      if (items.length === 0) {
+        itemsContainer.innerHTML =
+          '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
+        return;
+      }
+
+      const grouped = {};
+      CATEGORIES.forEach((c) => (grouped[c] = []));
+      items.forEach((item) => {
+        const cat =
+          item.category && CATEGORIES.includes(item.category)
+            ? item.category
+            : 'Other';
+        grouped[cat].push(item);
+      });
+
+      CATEGORIES.forEach((cat) => {
+        const catItems = grouped[cat];
+        if (!catItems || catItems.length === 0) return;
+
+        const section = document.createElement('div');
+        section.className = 'category-section';
+
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        const label = document.createElement('span');
+        label.textContent = cat;
+        const subtotalSpan = document.createElement('span');
+        subtotalSpan.className = 'category-subtotal';
+        if (totalsByCat[cat] > 0) {
+          subtotalSpan.textContent = 'Subtotal: ' + totalsByCat[cat].toFixed(2);
+        } else {
+          subtotalSpan.textContent = '';
+        }
+        header.appendChild(label);
+        header.appendChild(subtotalSpan);
+        section.appendChild(header);
+
+        const table = document.createElement('table');
+        table.className = 'items-table';
+
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+          <tr>
+            <th style="width:40px;">Done</th>
+            <th>Item</th>
+            <th style="width:80px;">Qty</th>
+            <th style="width:80px;">Price</th>
+            <th style="width:110px;">Shop</th>
+            <th style="width:120px;">Category</th>
+            <th style="width:40px;">Del</th>
+          </tr>`;
+        table.appendChild(thead);
+
+        const tbody = document.createElement('tbody');
+
+        catItems.forEach((item) => {
+          const tr = document.createElement('tr');
+
+          const tdDone = document.createElement('td');
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.checked = item.done;
+          cb.disabled = isArchived;
+          cb.addEventListener('change', async () => {
+            item.done = !item.done;
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+              renderCurrentList();
+            }
+          });
+          tdDone.style.textAlign = 'center';
+          tdDone.appendChild(cb);
+          tr.appendChild(tdDone);
+
+          const tdName = document.createElement('td');
+          const inputName = document.createElement('input');
+          inputName.type = 'text';
+          inputName.value = item.name || '';
+          inputName.disabled = isArchived;
+          inputName.addEventListener('change', async () => {
+            item.name = inputName.value.trim();
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+            }
+          });
+          tdName.appendChild(inputName);
+          tr.appendChild(tdName);
+
+          const tdQty = document.createElement('td');
+          const inputQty = document.createElement('input');
+          inputQty.type = 'text';
+          inputQty.value = item.quantity || '';
+          inputQty.disabled = isArchived;
+          inputQty.addEventListener('change', async () => {
+            item.quantity = inputQty.value.trim() || null;
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+            }
+          });
+          tdQty.appendChild(inputQty);
+          tr.appendChild(tdQty);
+
+          const tdPrice = document.createElement('td');
+          const inputPrice = document.createElement('input');
+          inputPrice.type = 'number';
+          inputPrice.step = '0.01';
+          inputPrice.min = '0';
+          inputPrice.value =
+            item.price != null && item.price !== '' ? item.price : '';
+          inputPrice.disabled = isArchived;
+          inputPrice.addEventListener('change', async () => {
+            const val = inputPrice.value.trim();
+            item.price = val === '' ? null : val;
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+              renderCurrentList();
+            }
+          });
+          tdPrice.appendChild(inputPrice);
+          tr.appendChild(tdPrice);
+
+          const tdShop = document.createElement('td');
+          const inputShop = document.createElement('input');
+          inputShop.type = 'text';
+          inputShop.value = item.shop || '';
+          inputShop.disabled = isArchived;
+          inputShop.addEventListener('change', async () => {
+            item.shop = inputShop.value.trim() || null;
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+            }
+          });
+          tdShop.appendChild(inputShop);
+          tr.appendChild(tdShop);
+
+          const tdCat = document.createElement('td');
+          const selCat = document.createElement('select');
+          CATEGORIES.forEach((c) => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            if (item.category === c || (!item.category && c === 'Other'))
+              opt.selected = true;
+            selCat.appendChild(opt);
+          });
+          selCat.disabled = isArchived;
+          selCat.addEventListener('change', async () => {
+            item.category = selCat.value;
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+              renderCurrentList();
+            }
+          });
+          tdCat.appendChild(selCat);
+          tr.appendChild(tdCat);
+
+          const tdDel = document.createElement('td');
+          const btnDel = document.createElement('button');
+          btnDel.type = 'button';
+          btnDel.textContent = '×';
+          btnDel.style.border = 'none';
+          btnDel.style.background = 'transparent';
+          btnDel.style.cursor = isArchived ? 'default' : 'pointer';
+          btnDel.style.color = '#c00';
+          btnDel.disabled = isArchived;
+          btnDel.addEventListener('click', async () => {
+            if (isArchived) return;
+            list.items = list.items.filter((it) => it.id !== item.id);
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex((l) => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+              renderCurrentList();
+            }
+          });
+          tdDel.style.textAlign = 'center';
+          tdDel.appendChild(btnDel);
+          tr.appendChild(tdDel);
+
+          tbody.appendChild(tr);
+        });
+
+        table.appendChild(tbody);
+        section.appendChild(table);
+        itemsContainer.appendChild(section);
+      });
+    }
+
+    function renderAll() {
+      renderSidebar();
+      renderCurrentList();
+    }
+
+    // Events
+    listTitleForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const list = getCurrentList();
+      if (!list) return;
+      const title = listTitleInput.value.trim() || autoListTitle();
+      const updated = await saveListPartial(list.id, { title });
+      if (updated) {
+        const idx = lists.findIndex((l) => l.id === list.id);
+        if (idx !== -1) lists[idx] = updated;
+        renderAll();
+      }
+    });
+
+    completeListBtn.addEventListener('click', async () => {
+      const list = getCurrentList();
+      if (!list) return;
+      if (!confirm('Mark this list as completed and archive it?')) return;
+      const updated = await
