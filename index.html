@@ -324,8 +324,8 @@
             <h1>Shopping list</h1>
             <span id="currentListStatusTag" class="tag"></span>
           </div>
-          <p class="info-text" id="shareInfo">
-            Lists are tied to your account. Later we can add sharing/email features here.
+          <p class="info-text">
+            Lists are tied to your account. Subtotals are shown per category.
           </p>
 
           <form class="list-form" id="listTitleForm">
@@ -348,7 +348,6 @@
                 <span id="totalPriceTag" class="tag" style="display:none;"></span>
               </div>
 
-              <!-- Add-item row -->
               <form class="item-form" id="itemForm">
                 <input id="itemNameInput" type="text" placeholder="Item" autocomplete="off" />
                 <input id="itemQtyInput" type="text" placeholder="Qty (e.g. 2, 1kg)" autocomplete="off" />
@@ -388,38 +387,20 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co'; // TODO
-    const SUPABASE_ANON_KEY =
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // TODO
+    // 1) Put your real Supabase values here
+    const SUPABASE_URL = 'https://YOURPROJECT.supabase.co';           // <- replace
+    const SUPABASE_ANON_KEY = 'eyJhbGciOi...';                        // <- replace
 
-    const supabaseClient = window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    );
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const CATEGORIES = [
-      'Fruits',
-      'Vegetables',
-      'Dairy',
-      'Bread',
-      'Meat',
-      'Fish',
-      'Pantry',
-      'Frozen',
-      'Drinks',
-      'Snacks',
-      'Cleaning',
-      'Hygiene',
-      'Baby',
-      'Pets',
-      'Pharmacy',
-      'Other'
+      'Fruits','Vegetables','Dairy','Bread','Meat','Fish','Pantry',
+      'Frozen','Drinks','Snacks','Cleaning','Hygiene','Baby','Pets','Pharmacy','Other'
     ];
 
     function generateLocalId() {
       return Date.now().toString(36) + Math.random().toString(36).slice(2);
     }
-
     function formatDateTimeForTitle() {
       const d = new Date();
       const y = d.getFullYear();
@@ -429,7 +410,6 @@
       const mm = String(d.getMinutes()).padStart(2, '0');
       return `${y}-${m}-${day} ${hh}:${mm}`;
     }
-
     function autoListTitle(base = 'My grocery list') {
       return `${base} – ${formatDateTimeForTitle()}`;
     }
@@ -475,7 +455,6 @@
     let currentListId = null;
     let authMode = 'login';
 
-    // Auth helpers
     function showApp() {
       authContainer.style.display = 'none';
       appContainer.style.display = 'block';
@@ -547,9 +526,8 @@
       showAuth();
     });
 
-    // Data helpers
     function getCurrentList() {
-      return lists.find((l) => l.id === currentListId) || null;
+      return lists.find(l => l.id === currentListId) || null;
     }
 
     async function fetchLists() {
@@ -561,23 +539,19 @@
         console.error('Error fetching lists', error);
         return [];
       }
-      // we rely on RLS to only return owned/shared lists
       return data || [];
     }
 
     async function saveListPartial(listId, partial) {
       const { data, error } = await supabaseClient
         .from('lists')
-        .update({
-          ...partial,
-          updated_at: new Date().toISOString()
-        })
+        .update({ ...partial, updated_at: new Date().toISOString() })
         .eq('id', listId)
         .select()
         .single();
       if (error) {
         console.error('Error saving list', error);
-        alert('Error saving list. Check console.');
+        alert('Error saving list. See console.');
         return null;
       }
       return data;
@@ -602,21 +576,19 @@
       return data;
     }
 
-    // Sidebar rendering
     function renderSidebar() {
       activeListsSidebar.innerHTML = '';
       archivedListsSidebar.innerHTML = '';
-      const activeLists = lists.filter((l) => l.status === 'active');
-      const archivedLists = lists.filter((l) => l.status === 'archived');
+
+      const activeLists = lists.filter(l => l.status === 'active');
+      const archivedLists = lists.filter(l => l.status === 'archived');
 
       if (activeLists.length === 0) {
-        activeListsSidebar.innerHTML =
-          '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
+        activeListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
       } else {
-        activeLists.forEach((list) => {
+        activeLists.forEach(list => {
           const li = document.createElement('li');
-          li.className =
-            'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+          li.className = 'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
           li.addEventListener('click', () => {
             currentListId = list.id;
             renderAll();
@@ -629,10 +601,9 @@
       }
 
       if (archivedLists.length === 0) {
-        archivedListsSidebar.innerHTML =
-          '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+        archivedListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
       } else {
-        archivedLists.forEach((list) => {
+        archivedLists.forEach(list => {
           const li = document.createElement('li');
           li.className = 'sidebar-list-item readonly';
           const nameSpan = document.createElement('span');
@@ -644,10 +615,7 @@
           reuseBtn.title = 'Reuse this list';
           reuseBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const resetItems = (list.items || []).map((it) => ({
-              ...it,
-              done: false
-            }));
+            const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
             const newTitle = autoListTitle(list.title);
             const newList = await createNewList(newTitle, resetItems, 'active');
             if (newList) {
@@ -662,7 +630,6 @@
       }
     }
 
-    // Current list / tables
     function renderCurrentList() {
       const list = getCurrentList();
       if (!list) {
@@ -673,8 +640,7 @@
       currentListCard.style.display = 'block';
       currentListTitle.textContent = list.title;
       listTitleInput.value = list.title;
-      currentListStatusTag.textContent =
-        list.status === 'archived' ? 'Archived' : 'Active';
+      currentListStatusTag.textContent = list.status === 'archived' ? 'Archived' : 'Active';
 
       const isArchived = list.status === 'archived';
       itemForm.style.display = isArchived ? 'none' : 'flex';
@@ -683,20 +649,16 @@
       const items = list.items || [];
       itemsContainer.innerHTML = '';
 
-      // totals
       let totalAll = 0;
       const totalsByCat = {};
-      CATEGORIES.forEach((c) => (totalsByCat[c] = 0));
+      CATEGORIES.forEach(c => totalsByCat[c] = 0);
 
-      items.forEach((item) => {
+      items.forEach(item => {
         if (item.price != null && item.price !== '') {
           const num = Number(item.price);
           if (!isNaN(num)) {
             totalAll += num;
-            const cat =
-              item.category && CATEGORIES.includes(item.category)
-                ? item.category
-                : 'Other';
+            const cat = item.category && CATEGORIES.includes(item.category) ? item.category : 'Other';
             totalsByCat[cat] += num;
           }
         }
@@ -710,22 +672,18 @@
       }
 
       if (items.length === 0) {
-        itemsContainer.innerHTML =
-          '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
+        itemsContainer.innerHTML = '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
         return;
       }
 
       const grouped = {};
-      CATEGORIES.forEach((c) => (grouped[c] = []));
-      items.forEach((item) => {
-        const cat =
-          item.category && CATEGORIES.includes(item.category)
-            ? item.category
-            : 'Other';
+      CATEGORIES.forEach(c => grouped[c] = []);
+      items.forEach(item => {
+        const cat = item.category && CATEGORIES.includes(item.category) ? item.category : 'Other';
         grouped[cat].push(item);
       });
 
-      CATEGORIES.forEach((cat) => {
+      CATEGORIES.forEach(cat => {
         const catItems = grouped[cat];
         if (!catItems || catItems.length === 0) return;
 
@@ -765,7 +723,7 @@
 
         const tbody = document.createElement('tbody');
 
-        catItems.forEach((item) => {
+        catItems.forEach(item => {
           const tr = document.createElement('tr');
 
           const tdDone = document.createElement('td');
@@ -777,7 +735,7 @@
             item.done = !item.done;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -795,7 +753,7 @@
             item.name = inputName.value.trim();
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
             }
           });
@@ -811,7 +769,7 @@
             item.quantity = inputQty.value.trim() || null;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
             }
           });
@@ -823,15 +781,14 @@
           inputPrice.type = 'number';
           inputPrice.step = '0.01';
           inputPrice.min = '0';
-          inputPrice.value =
-            item.price != null && item.price !== '' ? item.price : '';
+          inputPrice.value = item.price != null && item.price !== '' ? item.price : '';
           inputPrice.disabled = isArchived;
           inputPrice.addEventListener('change', async () => {
             const val = inputPrice.value.trim();
             item.price = val === '' ? null : val;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -848,7 +805,7 @@
             item.shop = inputShop.value.trim() || null;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
             }
           });
@@ -857,12 +814,11 @@
 
           const tdCat = document.createElement('td');
           const selCat = document.createElement('select');
-          CATEGORIES.forEach((c) => {
+          CATEGORIES.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c;
             opt.textContent = c;
-            if (item.category === c || (!item.category && c === 'Other'))
-              opt.selected = true;
+            if (item.category === c || (!item.category && c === 'Other')) opt.selected = true;
             selCat.appendChild(opt);
           });
           selCat.disabled = isArchived;
@@ -870,7 +826,7 @@
             item.category = selCat.value;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -889,10 +845,10 @@
           btnDel.disabled = isArchived;
           btnDel.addEventListener('click', async () => {
             if (isArchived) return;
-            list.items = list.items.filter((it) => it.id !== item.id);
+            list.items = list.items.filter(it => it.id !== item.id);
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex((l) => l.id === list.id);
+              const idx = lists.findIndex(l => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -915,7 +871,6 @@
       renderCurrentList();
     }
 
-    // Events
     listTitleForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const list = getCurrentList();
@@ -923,7 +878,7 @@
       const title = listTitleInput.value.trim() || autoListTitle();
       const updated = await saveListPartial(list.id, { title });
       if (updated) {
-        const idx = lists.findIndex((l) => l.id === list.id);
+        const idx = lists.findIndex(l => l.id === list.id);
         if (idx !== -1) lists[idx] = updated;
         renderAll();
       }
@@ -933,4 +888,97 @@
       const list = getCurrentList();
       if (!list) return;
       if (!confirm('Mark this list as completed and archive it?')) return;
-      const updated = await
+      const updated = await saveListPartial(list.id, { status: 'archived' });
+      if (updated) {
+        const idx = lists.findIndex(l => l.id === list.id);
+        if (idx !== -1) lists[idx] = updated;
+        const anyActive = lists.find(l => l.status === 'active');
+        currentListId = anyActive ? anyActive.id : list.id;
+        renderAll();
+      }
+    });
+
+    itemForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const list = getCurrentList();
+      if (!list || list.status === 'archived') return;
+      const name = itemNameInput.value.trim();
+      if (!name) return;
+      const qty = itemQtyInput.value.trim();
+      const priceRaw = itemPriceInput.value.trim();
+      const shop = itemShopInput.value.trim();
+      const cat = itemCatSelect.value;
+
+      const price = priceRaw === '' ? null : priceRaw;
+      const newItem = {
+        id: generateLocalId(),
+        name,
+        quantity: qty || null,
+        price,
+        shop: shop || null,
+        category: cat || 'Other',
+        done: false
+      };
+      list.items = list.items || [];
+      list.items.push(newItem);
+      const updated = await saveListPartial(list.id, { items: list.items });
+      if (updated) {
+        const idx = lists.findIndex(l => l.id === list.id);
+        if (idx !== -1) lists[idx] = updated;
+        itemNameInput.value = '';
+        itemQtyInput.value = '';
+        itemPriceInput.value = '';
+        itemShopInput.value = '';
+        itemCatSelect.value = cat;
+        renderCurrentList();
+      }
+    });
+
+    newListBtn.addEventListener('click', async () => {
+      if (!currentUser) return;
+      const baseTitle = 'My grocery list';
+      const autoTitle = autoListTitle(baseTitle);
+      const title = prompt('New list title:', autoTitle);
+      if (title === null) return;
+      const finalTitle = title.trim() || autoTitle;
+      const newList = await createNewList(finalTitle, [], 'active');
+      if (newList) {
+        lists.push(newList);
+        currentListId = newList.id;
+        renderAll();
+      }
+    });
+
+    async function initAppAfterLogin() {
+      lists = await fetchLists();
+      if (lists.length === 0) {
+        const title = autoListTitle();
+        const newList = await createNewList(title, [], 'active');
+        if (newList) {
+          lists.push(newList);
+          currentListId = newList.id;
+        }
+      } else {
+        const firstActive = lists.find(l => l.status === 'active');
+        currentListId = firstActive ? firstActive.id : lists[0].id;
+      }
+      renderAll();
+    }
+
+    async function checkExistingSession() {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data?.session?.user) {
+        currentUser = data.session.user;
+        sidebarUserEmail.textContent = currentUser.email || '';
+        showApp();
+        await initAppAfterLogin();
+      } else {
+        showAuth();
+      }
+    }
+
+    setAuthMode('login');
+    checkExistingSession();
+  </script>
+</body>
+</html>
