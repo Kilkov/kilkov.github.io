@@ -44,7 +44,7 @@
       text-transform: uppercase;
       color: #9ca3af;
       letter-spacing: 0.05em;
-      margin-bottom: 4px;
+      margin: 10px 0 4px;
     }
     .sidebar-list {
       list-style: none;
@@ -310,14 +310,14 @@
           <ul id="activeListsSidebar" class="sidebar-list"></ul>
         </div>
 
-        <div>
-          <div class="sidebar-section-title">Archived lists</div>
-          <ul id="archivedListsSidebar" class="sidebar-list"></ul>
-        </div>
-
         <div class="sidebar-bottom">
           <button id="newListBtn" type="button">New list</button>
           <button id="logoutBtn" type="button">Logout</button>
+        </div>
+
+        <div>
+          <div class="sidebar-section-title">Archived lists</div>
+          <ul id="archivedListsSidebar" class="sidebar-list"></ul>
         </div>
       </aside>
 
@@ -392,10 +392,14 @@
 
   <script>
     // --- Supabase config: replace with your values ---
-    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co'; // TODO: your project URL
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // TODO: your anon public key
+    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co'; // TODO
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // TODO
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
 
     const CATEGORIES = [
       'Fruits',
@@ -418,6 +422,20 @@
 
     function generateLocalId() {
       return Date.now().toString(36) + Math.random().toString(36).slice(2);
+    }
+
+    function formatDateTimeForTitle() {
+      const d = new Date();
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return `${y}-${m}-${day} ${hh}:${mm}`;
+    }
+
+    function autoListTitle(base = 'My grocery list') {
+      return `${base} – ${formatDateTimeForTitle()}`;
     }
 
     // --- Auth DOM ---
@@ -507,7 +525,10 @@
           authMessage.classList.add('info');
           setAuthMode('login');
         } else {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
           if (error) throw error;
           currentUser = data.user;
           sidebarUserEmail.textContent = currentUser.email || '';
@@ -531,7 +552,7 @@
 
     // --- Data helpers ---
     function getCurrentList() {
-      return lists.find(l => l.id === currentListId) || null;
+      return lists.find((l) => l.id === currentListId) || null;
     }
 
     async function fetchLists() {
@@ -589,15 +610,17 @@
     function renderSidebar() {
       activeListsSidebar.innerHTML = '';
       archivedListsSidebar.innerHTML = '';
-      const activeLists = lists.filter(l => l.status === 'active');
-      const archivedLists = lists.filter(l => l.status === 'archived');
+      const activeLists = lists.filter((l) => l.status === 'active');
+      const archivedLists = lists.filter((l) => l.status === 'archived');
 
       if (activeLists.length === 0) {
-        activeListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
+        activeListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
       } else {
-        activeLists.forEach(list => {
+        activeLists.forEach((list) => {
           const li = document.createElement('li');
-          li.className = 'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+          li.className =
+            'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
           li.addEventListener('click', () => {
             currentListId = list.id;
             renderAll();
@@ -610,9 +633,10 @@
       }
 
       if (archivedLists.length === 0) {
-        archivedListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+        archivedListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
       } else {
-        archivedLists.forEach(list => {
+        archivedLists.forEach((list) => {
           const li = document.createElement('li');
           li.className = 'sidebar-list-item readonly';
           const nameSpan = document.createElement('span');
@@ -624,8 +648,11 @@
           reuseBtn.title = 'Reuse this list';
           reuseBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
-            const newTitle = list.title + ' (copy)';
+            const resetItems = (list.items || []).map((it) => ({
+              ...it,
+              done: false
+            }));
+            const newTitle = autoListTitle(list.title);
             const newList = await createNewList(newTitle, resetItems, 'active');
             if (newList) {
               lists.push(newList);
@@ -650,7 +677,8 @@
       currentListCard.style.display = 'block';
       currentListTitle.textContent = list.title;
       listTitleInput.value = list.title;
-      currentListStatusTag.textContent = list.status === 'archived' ? 'Archived' : 'Active';
+      currentListStatusTag.textContent =
+        list.status === 'archived' ? 'Archived' : 'Active';
 
       const isArchived = list.status === 'archived';
       itemForm.style.display = isArchived ? 'none' : 'flex';
@@ -660,7 +688,7 @@
       itemsContainer.innerHTML = '';
 
       let total = 0;
-      items.forEach(item => {
+      items.forEach((item) => {
         if (item.price != null && item.price !== '') {
           const num = Number(item.price);
           if (!isNaN(num)) total += num;
@@ -675,19 +703,22 @@
       }
 
       if (items.length === 0) {
-        itemsContainer.innerHTML = '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
+        itemsContainer.innerHTML =
+          '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
         return;
       }
 
-      // group items by category
       const grouped = {};
-      CATEGORIES.forEach(c => grouped[c] = []);
-      items.forEach(item => {
-        const cat = item.category && CATEGORIES.includes(item.category) ? item.category : 'Other';
+      CATEGORIES.forEach((c) => (grouped[c] = []));
+      items.forEach((item) => {
+        const cat =
+          item.category && CATEGORIES.includes(item.category)
+            ? item.category
+            : 'Other';
         grouped[cat].push(item);
       });
 
-      CATEGORIES.forEach(cat => {
+      CATEGORIES.forEach((cat) => {
         const catItems = grouped[cat];
         if (!catItems || catItems.length === 0) return;
 
@@ -717,10 +748,9 @@
 
         const tbody = document.createElement('tbody');
 
-        catItems.forEach(item => {
+        catItems.forEach((item) => {
           const tr = document.createElement('tr');
 
-          // Done
           const tdDone = document.createElement('td');
           const cb = document.createElement('input');
           cb.type = 'checkbox';
@@ -730,7 +760,7 @@
             item.done = !item.done;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -739,7 +769,6 @@
           tdDone.appendChild(cb);
           tr.appendChild(tdDone);
 
-          // Name
           const tdName = document.createElement('td');
           const inputName = document.createElement('input');
           inputName.type = 'text';
@@ -749,14 +778,13 @@
             item.name = inputName.value.trim();
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
             }
           });
           tdName.appendChild(inputName);
           tr.appendChild(tdName);
 
-          // Qty
           const tdQty = document.createElement('td');
           const inputQty = document.createElement('input');
           inputQty.type = 'text';
@@ -766,27 +794,27 @@
             item.quantity = inputQty.value.trim() || null;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
             }
           });
           tdQty.appendChild(inputQty);
           tr.appendChild(tdQty);
 
-          // Price
           const tdPrice = document.createElement('td');
           const inputPrice = document.createElement('input');
           inputPrice.type = 'number';
           inputPrice.step = '0.01';
           inputPrice.min = '0';
-          inputPrice.value = item.price != null ? item.price : '';
+          inputPrice.value =
+            item.price != null && item.price !== '' ? item.price : '';
           inputPrice.disabled = isArchived;
           inputPrice.addEventListener('change', async () => {
             const val = inputPrice.value.trim();
             item.price = val === '' ? null : val;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -794,7 +822,6 @@
           tdPrice.appendChild(inputPrice);
           tr.appendChild(tdPrice);
 
-          // Shop
           const tdShop = document.createElement('td');
           const inputShop = document.createElement('input');
           inputShop.type = 'text';
@@ -804,21 +831,21 @@
             item.shop = inputShop.value.trim() || null;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
             }
           });
           tdShop.appendChild(inputShop);
           tr.appendChild(tdShop);
 
-          // Category
           const tdCat = document.createElement('td');
           const selCat = document.createElement('select');
-          CATEGORIES.forEach(c => {
+          CATEGORIES.forEach((c) => {
             const opt = document.createElement('option');
             opt.value = c;
             opt.textContent = c;
-            if (item.category === c || (!item.category && c === 'Other')) opt.selected = true;
+            if (item.category === c || (!item.category && c === 'Other'))
+              opt.selected = true;
             selCat.appendChild(opt);
           });
           selCat.disabled = isArchived;
@@ -826,15 +853,14 @@
             item.category = selCat.value;
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
-              renderCurrentList(); // will move row to new table
+              renderCurrentList();
             }
           });
           tdCat.appendChild(selCat);
           tr.appendChild(tdCat);
 
-          // Delete
           const tdDel = document.createElement('td');
           const btnDel = document.createElement('button');
           btnDel.type = 'button';
@@ -846,10 +872,10 @@
           btnDel.disabled = isArchived;
           btnDel.addEventListener('click', async () => {
             if (isArchived) return;
-            list.items = list.items.filter(it => it.id !== item.id);
+            list.items = list.items.filter((it) => it.id !== item.id);
             const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              const idx = lists.findIndex(l => l.id === list.id);
+              const idx = lists.findIndex((l) => l.id === list.id);
               if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
@@ -877,10 +903,10 @@
       e.preventDefault();
       const list = getCurrentList();
       if (!list) return;
-      const title = listTitleInput.value.trim() || 'My grocery list';
+      const title = listTitleInput.value.trim() || autoListTitle();
       const updated = await saveListPartial(list.id, { title });
       if (updated) {
-        const idx = lists.findIndex(l => l.id === list.id);
+        const idx = lists.findIndex((l) => l.id === list.id);
         if (idx !== -1) lists[idx] = updated;
         renderAll();
       }
@@ -892,9 +918,9 @@
       if (!confirm('Mark this list as completed and archive it?')) return;
       const updated = await saveListPartial(list.id, { status: 'archived' });
       if (updated) {
-        const idx = lists.findIndex(l => l.id === list.id);
+        const idx = lists.findIndex((l) => l.id === list.id);
         if (idx !== -1) lists[idx] = updated;
-        const anyActive = lists.find(l => l.status === 'active');
+        const anyActive = lists.find((l) => l.status === 'active');
         currentListId = anyActive ? anyActive.id : list.id;
         renderAll();
       }
@@ -924,7 +950,7 @@
       list.items.push(newItem);
       const updated = await saveListPartial(list.id, { items: list.items });
       if (updated) {
-        const idx = lists.findIndex(l => l.id === list.id);
+        const idx = lists.findIndex((l) => l.id === list.id);
         if (idx !== -1) lists[idx] = updated;
         itemNameInput.value = '';
         itemQtyInput.value = '';
@@ -937,9 +963,11 @@
 
     newListBtn.addEventListener('click', async () => {
       if (!currentUser) return;
-      const title = prompt('New list title:', 'My grocery list');
+      const baseTitle = 'My grocery list';
+      const autoTitle = autoListTitle(baseTitle);
+      const title = prompt('New list title:', autoTitle);
       if (title === null) return;
-      const finalTitle = title.trim() || 'My grocery list';
+      const finalTitle = title.trim() || autoTitle;
       const newList = await createNewList(finalTitle, [], 'active');
       if (newList) {
         lists.push(newList);
@@ -952,13 +980,14 @@
     async function initAppAfterLogin() {
       lists = await fetchLists();
       if (lists.length === 0) {
-        const newList = await createNewList('My grocery list', [], 'active');
+        const title = autoListTitle();
+        const newList = await createNewList(title, [], 'active');
         if (newList) {
           lists.push(newList);
           currentListId = newList.id;
         }
       } else {
-        const firstActive = lists.find(l => l.status === 'active');
+        const firstActive = lists.find((l) => l.status === 'active');
         currentListId = firstActive ? firstActive.id : lists[0].id;
       }
       renderAll();
