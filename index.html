@@ -12,14 +12,105 @@
       background: #f5f5f5;
       color: #222;
     }
+    .root {
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: 260px;
+      background: #111827;
+      color: #e5e7eb;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .sidebar-header {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .sidebar-user {
+      font-size: 12px;
+      color: #9ca3af;
+      word-break: break-all;
+    }
+    .sidebar-section-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #9ca3af;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .sidebar-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar-list-item {
+      padding: 6px 8px;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #e5e7eb;
+    }
+    .sidebar-list-item span {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sidebar-list-item.active {
+      background: #2563eb;
+    }
+    .sidebar-list-item.readonly {
+      opacity: 0.7;
+    }
+    .sidebar-list-item button {
+      border: none;
+      background: transparent;
+      color: #9ca3af;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+    }
+    .sidebar-bottom {
+      margin-top: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .sidebar-bottom button {
+      width: 100%;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border: 1px solid #374151;
+      background: #111827;
+      color: #e5e7eb;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
     .app {
+      flex: 1;
       max-width: 1000px;
       margin: 0 auto;
       padding: 16px;
     }
     h1 {
-      margin-top: 0;
-      text-align: center;
+      margin: 0;
+      text-align: left;
     }
     h2 {
       margin-top: 0;
@@ -36,7 +127,18 @@
       grid-template-columns: minmax(0, 2.2fr) minmax(0, 1.2fr);
       gap: 16px;
     }
-    @media (max-width: 800px) {
+    @media (max-width: 900px) {
+      .root {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+      .sidebar-bottom {
+        margin-top: 0;
+      }
       .layout {
         grid-template-columns: 1fr;
       }
@@ -47,7 +149,7 @@
       margin-top: 8px;
       flex-wrap: wrap;
     }
-    .list-form input, .item-form input {
+    .list-form input, .item-form input, .item-form select {
       padding: 6px 8px;
       border-radius: 4px;
       border: 1px solid #ccc;
@@ -82,20 +184,31 @@
       padding: 0;
       margin-top: 8px;
     }
+    .category-section {
+      margin-top: 12px;
+    }
+    .category-header {
+      font-weight: 600;
+      margin: 8px 0 4px;
+      font-size: 14px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 2px;
+    }
     .item-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      padding: 6px 0;
-      border-bottom: 1px solid #eee;
+      padding: 4px 0;
       gap: 8px;
+    }
+    .item-left {
+      flex: 1;
+      min-width: 0;
     }
     .item-label {
       display: flex;
       align-items: center;
       gap: 8px;
-      flex: 1;
-      min-width: 0;
     }
     .item-text {
       overflow: hidden;
@@ -105,9 +218,15 @@
     .item-meta {
       display: flex;
       flex-wrap: wrap;
-      gap: 4px;
+      gap: 6px;
       font-size: 11px;
       color: #555;
+      margin-top: 2px;
+      align-items: center;
+    }
+    .item-meta select {
+      font-size: 11px;
+      padding: 2px 4px;
     }
     .badge {
       display: inline-block;
@@ -203,7 +322,7 @@
     <div class="card auth-card">
       <h2 style="text-align:center;">Pazarski list</h2>
       <p style="text-align:center;font-size:13px;color:#555;">
-        Login or register to access your grocery list from any device.
+        Login or register to manage your shopping lists.
       </p>
       <form id="authForm" class="auth-form">
         <input id="authEmail" type="email" placeholder="Email" required />
@@ -218,78 +337,108 @@
     </div>
   </div>
 
-  <!-- Main app container (hidden until logged in) -->
+  <!-- Main app container -->
   <div id="appContainer" style="display:none;">
-    <div class="app">
-      <div class="card" style="margin-bottom:16px;">
-        <div class="section-title-row">
-          <h1 style="margin:0;">Pazarski list</h1>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <span id="userEmailTag" class="tag"></span>
-            <button id="logoutBtn" class="secondary" type="button">Logout</button>
-          </div>
+    <div class="root">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">Pazarski list</div>
+          <div id="sidebarUserEmail" class="sidebar-user"></div>
         </div>
-      </div>
 
-      <div class="layout">
         <div>
-          <div class="card">
-            <div class="section-title-row">
-              <strong>Current list</strong>
-              <button id="newListBtn" class="secondary" type="button">New list</button>
-            </div>
-            <p class="info-text" id="shareInfo">
-              This list is tied to your account. Log in with the same email on another device to use it there.
-            </p>
+          <div class="sidebar-section-title">Active lists</div>
+          <ul id="activeListsSidebar" class="sidebar-list"></ul>
+        </div>
 
-            <form class="list-form" id="listTitleForm">
-              <input
-                id="listTitleInput"
-                type="text"
-                placeholder="List title"
-                autocomplete="off"
-              />
-              <button type="submit" class="primary">Save title</button>
-            </form>
+        <div>
+          <div class="sidebar-section-title">Archived lists</div>
+          <ul id="archivedListsSidebar" class="sidebar-list"></ul>
+        </div>
+
+        <div class="sidebar-bottom">
+          <button id="newListBtn" type="button">New list</button>
+          <button id="logoutBtn" type="button">Logout</button>
+        </div>
+      </aside>
+
+      <main class="app">
+        <div class="card">
+          <div class="section-title-row">
+            <h1>Shopping list</h1>
+            <span id="currentListStatusTag" class="tag"></span>
           </div>
+          <p class="info-text" id="shareInfo">
+            Lists are tied to your account. Log in with the same email on another device to use them there.
+          </p>
 
-          <div class="card" id="currentListCard" style="display:none;">
-            <div class="section-title-row">
-              <h2 id="currentListTitle" style="margin:0;"></h2>
-              <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <form class="list-form" id="listTitleForm">
+            <input
+              id="listTitleInput"
+              type="text"
+              placeholder="List title"
+              autocomplete="off"
+            />
+            <button type="submit" class="primary">Save title</button>
+            <button type="button" class="secondary" id="completeListBtn">Mark completed</button>
+          </form>
+        </div>
+
+        <div class="layout">
+          <div>
+            <div class="card" id="currentListCard" style="display:none;">
+              <div class="section-title-row">
+                <h2 id="currentListTitle" style="margin:0;"></h2>
                 <span id="totalPriceTag" class="tag" style="display:none;"></span>
               </div>
+
+              <form class="item-form" id="itemForm">
+                <input id="itemNameInput" type="text" placeholder="Item" autocomplete="off" />
+                <input id="itemQtyInput" type="text" placeholder="Qty (e.g. 2, 1kg)" autocomplete="off" />
+                <input id="itemPriceInput" type="number" step="0.01" min="0" placeholder="Price" autocomplete="off" />
+                <input id="itemShopInput" type="text" placeholder="Shop" autocomplete="off" />
+                <select id="itemCatSelect">
+                  <option value="Fruits">Fruits</option>
+                  <option value="Vegetables">Vegetables</option>
+                  <option value="Dairy">Dairy</option>
+                  <option value="Bread">Bread</option>
+                  <option value="Meat">Meat</option>
+                  <option value="Fish">Fish</option>
+                  <option value="Pantry">Pantry</option>
+                  <option value="Frozen">Frozen</option>
+                  <option value="Drinks">Drinks</option>
+                  <option value="Snacks">Snacks</option>
+                  <option value="Cleaning">Cleaning</option>
+                  <option value="Hygiene">Hygiene</option>
+                  <option value="Baby">Baby</option>
+                  <option value="Pets">Pets</option>
+                  <option value="Pharmacy">Pharmacy</option>
+                  <option value="Other">Other</option>
+                </select>
+                <button type="submit" class="primary">Add item</button>
+              </form>
+
+              <div id="itemsContainer"></div>
             </div>
+          </div>
 
-            <form class="item-form" id="itemForm">
-              <input id="itemNameInput" type="text" placeholder="Item" autocomplete="off" />
-              <input id="itemQtyInput" type="text" placeholder="Qty (e.g. 2, 1kg)" autocomplete="off" />
-              <input id="itemPriceInput" type="number" step="0.01" min="0" placeholder="Price" autocomplete="off" />
-              <input id="itemShopInput" type="text" placeholder="Shop" autocomplete="off" />
-              <input id="itemCatInput" type="text" placeholder="Category (e.g. Dairy)" autocomplete="off" />
-              <button type="submit" class="primary">Add item</button>
-            </form>
-
-            <ul class="items-list" id="itemsList"></ul>
+          <div>
+            <div class="card">
+              <div class="section-title-row">
+                <strong>Item log (local to this device)</strong>
+                <button id="clearLogBtn" class="secondary" type="button" style="font-size:11px;">
+                  Clear log
+                </button>
+              </div>
+              <ul class="log-list" id="logList"></ul>
+            </div>
           </div>
         </div>
 
-        <div>
-          <div class="card">
-            <div class="section-title-row">
-              <strong>Item log (local to this device)</strong>
-              <button id="clearLogBtn" class="secondary" type="button" style="font-size:11px;">
-                Clear log
-              </button>
-            </div>
-            <ul class="log-list" id="logList"></ul>
-          </div>
+        <div class="footer">
+          Lists are stored in Supabase tied to your account. Log is stored locally in this browser.
         </div>
-      </div>
-
-      <div class="footer">
-        Lists are stored in Supabase tied to your account. Log is stored locally in this browser.
-      </div>
+      </main>
     </div>
   </div>
 
@@ -300,8 +449,28 @@
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // Categories order
+    const CATEGORIES = [
+      'Fruits',
+      'Vegetables',
+      'Dairy',
+      'Bread',
+      'Meat',
+      'Fish',
+      'Pantry',
+      'Frozen',
+      'Drinks',
+      'Snacks',
+      'Cleaning',
+      'Hygiene',
+      'Baby',
+      'Pets',
+      'Pharmacy',
+      'Other'
+    ];
+
     // --- Local log ---
-    const LOG_STORAGE_KEY = 'grocery_log_auth_v1';
+    const LOG_STORAGE_KEY = 'grocery_log_sidebar_v1';
 
     function loadLog() {
       try {
@@ -329,7 +498,7 @@
       }
     }
 
-    // --- Auth DOM references ---
+    // --- Auth DOM ---
     const authContainer = document.getElementById('authContainer');
     const appContainer = document.getElementById('appContainer');
     const authForm = document.getElementById('authForm');
@@ -340,13 +509,19 @@
     const authToggleText = document.getElementById('authToggleText');
     const authSubmitBtn = document.getElementById('authSubmitBtn');
 
-    const userEmailTag = document.getElementById('userEmailTag');
+    const sidebarUserEmail = document.getElementById('sidebarUserEmail');
     const logoutBtn = document.getElementById('logoutBtn');
 
-    // --- App DOM references ---
+    // Sidebar lists
+    const activeListsSidebar = document.getElementById('activeListsSidebar');
+    const archivedListsSidebar = document.getElementById('archivedListsSidebar');
+    const newListBtn = document.getElementById('newListBtn');
+
+    // App DOM
     const listTitleForm = document.getElementById('listTitleForm');
     const listTitleInput = document.getElementById('listTitleInput');
-    const newListBtn = document.getElementById('newListBtn');
+    const currentListStatusTag = document.getElementById('currentListStatusTag');
+    const completeListBtn = document.getElementById('completeListBtn');
 
     const currentListCard = document.getElementById('currentListCard');
     const currentListTitle = document.getElementById('currentListTitle');
@@ -357,15 +532,16 @@
     const itemQtyInput = document.getElementById('itemQtyInput');
     const itemPriceInput = document.getElementById('itemPriceInput');
     const itemShopInput = document.getElementById('itemShopInput');
-    const itemCatInput = document.getElementById('itemCatInput');
-    const itemsList = document.getElementById('itemsList');
+    const itemCatSelect = document.getElementById('itemCatSelect');
+    const itemsContainer = document.getElementById('itemsContainer');
 
     const logList = document.getElementById('logList');
     const clearLogBtn = document.getElementById('clearLogBtn');
 
     // --- State ---
     let currentUser = null;
-    let currentList = null; // { id, user_id, title, items, ... }
+    let lists = []; // all user's lists
+    let currentListId = null;
     let logEntries = loadLog();
     let authMode = 'login'; // 'login' or 'register'
 
@@ -418,14 +594,14 @@
         if (authMode === 'register') {
           const { data, error } = await supabaseClient.auth.signUp({ email, password });
           if (error) throw error;
-          authMessage.textContent = 'Registered. Please log in with your email and password.';
+          authMessage.textContent = 'Registered. Please log in.';
           authMessage.classList.add('info');
           setAuthMode('login');
         } else {
           const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           currentUser = data.user;
-          userEmailTag.textContent = currentUser.email || '';
+          sidebarUserEmail.textContent = currentUser.email || '';
           showApp();
           await initAppAfterLogin();
         }
@@ -438,8 +614,9 @@
     logoutBtn.addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       currentUser = null;
-      currentList = null;
-      userEmailTag.textContent = '';
+      lists = [];
+      currentListId = null;
+      sidebarUserEmail.textContent = '';
       showAuth();
     });
 
@@ -485,7 +662,11 @@
         } else if (t === 'list_title_changed') {
           text = `Renamed list to "${p.title}"`;
         } else if (t === 'list_created') {
-          text = `Created new list "${p.title}"`;
+          text = `Created list "${p.title}"`;
+        } else if (t === 'list_completed') {
+          text = `Completed list "${p.title}"`;
+        } else if (t === 'list_reused') {
+          text = `Reused list "${p.title}"`;
         } else {
           text = t;
         }
@@ -509,91 +690,188 @@
       renderLog();
     });
 
-    // --- App logic: lists and items ---
-    async function loadOrCreateListForUser() {
-      const { data: lists, error } = await supabaseClient
+    // --- Lists / items helpers ---
+    function getCurrentList() {
+      return lists.find(l => l.id === currentListId) || null;
+    }
+
+    async function fetchLists() {
+      const { data, error } = await supabaseClient
         .from('lists')
         .select('*')
         .eq('user_id', currentUser.id)
-        .order('created_at', { ascending: true })
-        .limit(1);
+        .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching lists', error);
-        return null;
+        return [];
       }
-
-      if (lists && lists.length > 0) {
-        return lists[0];
-      }
-
-      const { data: newList, error: insError } = await supabaseClient
-        .from('lists')
-        .insert({
-          title: 'My grocery list',
-          items: [],
-          user_id: currentUser.id
-        })
-        .select()
-        .single();
-
-      if (insError) {
-        console.error('Error creating list', insError);
-        return null;
-      }
-
-      addLogEntry('list_created', { title: newList.title });
-      return newList;
+      return data || [];
     }
 
-    async function saveListPartial(partial) {
-      if (!currentList) return null;
+    async function saveListPartial(listId, partial) {
       const { data, error } = await supabaseClient
         .from('lists')
         .update({
           ...partial,
           updated_at: new Date().toISOString()
         })
-        .eq('id', currentList.id)
+        .eq('id', listId)
         .eq('user_id', currentUser.id)
         .select()
         .single();
-
       if (error) {
         console.error('Error saving list', error);
-        alert('Error saving list. Check console for details.');
+        alert('Error saving list. Check console.');
         return null;
       }
       return data;
     }
 
+    async function createNewList(title, items = [], status = 'active') {
+      const { data, error } = await supabaseClient
+        .from('lists')
+        .insert({
+          title,
+          items,
+          status,
+          user_id: currentUser.id
+        })
+        .select()
+        .single();
+      if (error) {
+        console.error('Error creating list', error);
+        alert('Error creating list.');
+        return null;
+      }
+      return data;
+    }
+
+    function renderSidebar() {
+      activeListsSidebar.innerHTML = '';
+      archivedListsSidebar.innerHTML = '';
+
+      const activeLists = lists.filter(l => l.status === 'active');
+      const archivedLists = lists.filter(l => l.status === 'archived');
+
+      if (activeLists.length === 0) {
+        activeListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
+      } else {
+        activeLists.forEach(list => {
+          const li = document.createElement('li');
+          li.className = 'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+          li.addEventListener('click', () => {
+            currentListId = list.id;
+            renderAll();
+          });
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+
+          activeListsSidebar.appendChild(li);
+        });
+      }
+
+      if (archivedLists.length === 0) {
+        archivedListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+      } else {
+        archivedLists.forEach(list => {
+          const li = document.createElement('li');
+          li.className = 'sidebar-list-item readonly';
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+
+          const reuseBtn = document.createElement('button');
+          reuseBtn.type = 'button';
+          reuseBtn.textContent = '↩';
+          reuseBtn.title = 'Reuse this list';
+          reuseBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
+            const newTitle = list.title + ' (copy)';
+            const newList = await createNewList(newTitle, resetItems, 'active');
+            if (newList) {
+              lists.push(newList);
+              currentListId = newList.id;
+              addLogEntry('list_reused', { title: list.title });
+              renderAll();
+            }
+          });
+          li.appendChild(reuseBtn);
+
+          archivedListsSidebar.appendChild(li);
+        });
+      }
+    }
+
     function renderCurrentList() {
-      if (!currentList) {
+      const list = getCurrentList();
+      if (!list) {
         currentListCard.style.display = 'none';
+        currentListStatusTag.textContent = '';
         return;
       }
 
       currentListCard.style.display = 'block';
-      currentListTitle.textContent = currentList.title || 'My grocery list';
-      listTitleInput.value = currentList.title || '';
+      currentListTitle.textContent = list.title;
+      listTitleInput.value = list.title;
 
-      const items = currentList.items || [];
-      itemsList.innerHTML = '';
+      currentListStatusTag.textContent = list.status === 'archived' ? 'Archived' : 'Active';
+
+      const isArchived = list.status === 'archived';
+
+      // Disable item form / complete button if archived
+      itemForm.style.display = isArchived ? 'none' : 'flex';
+      completeListBtn.disabled = isArchived;
+
+      const items = list.items || [];
+      itemsContainer.innerHTML = '';
+
       if (items.length === 0) {
-        itemsList.innerHTML = '<li style="color:#666;font-size:14px;margin-top:8px;">No items yet.</li>';
-      } else {
-        let total = 0;
-        items.forEach(item => {
-          if (item.price != null && item.price !== '') {
-            const num = Number(item.price);
-            if (!isNaN(num)) total += num;
-          }
+        itemsContainer.innerHTML = '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
+        totalPriceTag.style.display = 'none';
+        return;
+      }
 
+      let total = 0;
+
+      // Group items by category while preserving category order
+      const grouped = {};
+      CATEGORIES.forEach(c => { grouped[c] = []; });
+      items.forEach(item => {
+        if (item.price != null && item.price !== '') {
+          const num = Number(item.price);
+          if (!isNaN(num)) total += num;
+        }
+        const cat = item.category && CATEGORIES.includes(item.category) ? item.category : 'Other';
+        if (!grouped[cat]) grouped[cat] = [];
+        grouped[cat].push(item);
+      });
+
+      CATEGORIES.forEach(cat => {
+        const catItems = grouped[cat] || [];
+        if (catItems.length === 0) return;
+
+        const section = document.createElement('div');
+        section.className = 'category-section';
+
+        const header = document.createElement('div');
+        header.className = 'category-header';
+        header.textContent = cat;
+        section.appendChild(header);
+
+        const ul = document.createElement('ul');
+        ul.className = 'items-list';
+
+        catItems.forEach(item => {
           const li = document.createElement('li');
           li.className = 'item-row';
 
-          const labelWrapper = document.createElement('div');
-          labelWrapper.style.flex = '1';
+          const left = document.createElement('div');
+          left.className = 'item-left';
 
           const topRow = document.createElement('div');
           topRow.className = 'item-label';
@@ -601,11 +879,13 @@
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
           checkbox.checked = item.done;
+          checkbox.disabled = isArchived;
           checkbox.addEventListener('change', async () => {
             item.done = !item.done;
-            const updated = await saveListPartial({ items: currentList.items });
+            const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              currentList = updated;
+              const idx = lists.findIndex(l => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
               renderCurrentList();
             }
           });
@@ -625,12 +905,27 @@
           const metaRow = document.createElement('div');
           metaRow.className = 'item-meta';
 
-          if (item.category) {
-            const cat = document.createElement('span');
-            cat.className = 'badge';
-            cat.textContent = item.category;
-            metaRow.appendChild(cat);
-          }
+          const catSelect = document.createElement('select');
+          CATEGORIES.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            if (item.category === c || (!item.category && c === 'Other')) {
+              opt.selected = true;
+            }
+            catSelect.appendChild(opt);
+          });
+          catSelect.disabled = isArchived;
+          catSelect.addEventListener('change', async () => {
+            item.category = catSelect.value;
+            const updated = await saveListPartial(list.id, { items: list.items });
+            if (updated) {
+              const idx = lists.findIndex(l => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
+              renderCurrentList();
+            }
+          });
+          metaRow.appendChild(catSelect);
 
           if (item.shop) {
             const shopSpan = document.createElement('span');
@@ -644,10 +939,8 @@
             metaRow.appendChild(priceSpan);
           }
 
-          labelWrapper.appendChild(topRow);
-          if (metaRow.children.length > 0) {
-            labelWrapper.appendChild(metaRow);
-          }
+          left.appendChild(topRow);
+          left.appendChild(metaRow);
 
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
@@ -655,14 +948,17 @@
           deleteBtn.title = 'Remove item';
           deleteBtn.style.border = 'none';
           deleteBtn.style.background = 'transparent';
-          deleteBtn.style.cursor = 'pointer';
+          deleteBtn.style.cursor = isArchived ? 'default' : 'pointer';
           deleteBtn.style.color = '#c00';
           deleteBtn.style.fontSize = '16px';
+          deleteBtn.disabled = isArchived;
           deleteBtn.addEventListener('click', async () => {
-            currentList.items = currentList.items.filter(it => it.id !== item.id);
-            const updated = await saveListPartial({ items: currentList.items });
+            if (isArchived) return;
+            list.items = list.items.filter(it => it.id !== item.id);
+            const updated = await saveListPartial(list.id, { items: list.items });
             if (updated) {
-              currentList = updated;
+              const idx = lists.findIndex(l => l.id === list.id);
+              if (idx !== -1) lists[idx] = updated;
               addLogEntry('item_removed', {
                 itemName: item.name,
                 quantity: item.quantity,
@@ -673,46 +969,69 @@
             }
           });
 
-          li.appendChild(labelWrapper);
+          li.appendChild(left);
           li.appendChild(deleteBtn);
-          itemsList.appendChild(li);
+          ul.appendChild(li);
         });
 
-        if (total > 0) {
-          totalPriceTag.style.display = 'inline-block';
-          totalPriceTag.textContent = 'Total price: ' + total.toFixed(2);
-        } else {
-          totalPriceTag.style.display = 'none';
-        }
+        section.appendChild(ul);
+        itemsContainer.appendChild(section);
+      });
+
+      if (total > 0) {
+        totalPriceTag.style.display = 'inline-block';
+        totalPriceTag.textContent = 'Total price: ' + total.toFixed(2);
+      } else {
+        totalPriceTag.style.display = 'none';
       }
     }
 
     function renderAll() {
+      renderSidebar();
       renderCurrentList();
       renderLog();
     }
 
     listTitleForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!currentList) return;
+      const list = getCurrentList();
+      if (!list) return;
       const title = listTitleInput.value.trim() || 'My grocery list';
-      const updated = await saveListPartial({ title });
+      const updated = await saveListPartial(list.id, { title });
       if (updated) {
-        currentList = updated;
+        const idx = lists.findIndex(l => l.id === list.id);
+        if (idx !== -1) lists[idx] = updated;
         addLogEntry('list_title_changed', { title });
+        renderAll();
+      }
+    });
+
+    completeListBtn.addEventListener('click', async () => {
+      const list = getCurrentList();
+      if (!list) return;
+      if (!confirm('Mark this list as completed and archive it?')) return;
+      const updated = await saveListPartial(list.id, { status: 'archived' });
+      if (updated) {
+        const idx = lists.findIndex(l => l.id === list.id);
+        if (idx !== -1) lists[idx] = updated;
+        addLogEntry('list_completed', { title: list.title });
+        // pick another active list if any, else keep current but readonly
+        const anyActive = lists.find(l => l.status === 'active');
+        currentListId = anyActive ? anyActive.id : list.id;
         renderAll();
       }
     });
 
     itemForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (!currentList) return;
+      const list = getCurrentList();
+      if (!list || list.status === 'archived') return;
 
       const name = itemNameInput.value.trim();
       const qty = itemQtyInput.value.trim();
       const priceRaw = itemPriceInput.value.trim();
       const shop = itemShopInput.value.trim();
-      const cat = itemCatInput.value.trim();
+      const cat = itemCatSelect.value;
       if (!name) return;
 
       const price = priceRaw === '' ? null : priceRaw;
@@ -723,15 +1042,16 @@
         quantity: qty || null,
         price,
         shop: shop || null,
-        category: cat || null,
+        category: cat || 'Other',
         done: false
       };
 
-      currentList.items = currentList.items || [];
-      currentList.items.push(newItem);
-      const updated = await saveListPartial({ items: currentList.items });
+      list.items = list.items || [];
+      list.items.push(newItem);
+      const updated = await saveListPartial(list.id, { items: list.items });
       if (updated) {
-        currentList = updated;
+        const idx = lists.findIndex(l => l.id === list.id);
+        if (idx !== -1) lists[idx] = updated;
         addLogEntry('item_added', {
           itemName: name,
           quantity: newItem.quantity,
@@ -742,46 +1062,46 @@
         itemQtyInput.value = '';
         itemPriceInput.value = '';
         itemShopInput.value = '';
-        itemCatInput.value = '';
+        itemCatSelect.value = cat;
         renderCurrentList();
       }
     });
 
     newListBtn.addEventListener('click', async () => {
       if (!currentUser) return;
-      if (!confirm('Create a new empty list? The old one will remain in the database but this app will use the new one.')) return;
       const title = prompt('New list title:', 'My grocery list');
-      const finalTitle = (title || 'My grocery list').trim();
-      const { data: newList, error } = await supabaseClient
-        .from('lists')
-        .insert({
-          title: finalTitle,
-          items: [],
-          user_id: currentUser.id
-        })
-        .select()
-        .single();
-      if (error) {
-        console.error('Error creating new list', error);
-        alert('Error creating new list.');
-        return;
+      if (title === null) return;
+      const finalTitle = title.trim() || 'My grocery list';
+      const newList = await createNewList(finalTitle, [], 'active');
+      if (newList) {
+        lists.push(newList);
+        currentListId = newList.id;
+        addLogEntry('list_created', { title: finalTitle });
+        renderAll();
       }
-      currentList = newList;
-      addLogEntry('list_created', { title: finalTitle });
-      renderAll();
     });
 
     async function initAppAfterLogin() {
-      const list = await loadOrCreateListForUser();
-      currentList = list;
+      lists = await fetchLists();
+      if (lists.length === 0) {
+        const newList = await createNewList('My grocery list', [], 'active');
+        if (newList) {
+          lists.push(newList);
+          currentListId = newList.id;
+          addLogEntry('list_created', { title: newList.title });
+        }
+      } else {
+        const firstActive = lists.find(l => l.status === 'active');
+        currentListId = firstActive ? firstActive.id : lists[0].id;
+      }
       renderAll();
     }
 
     async function checkExistingSession() {
-      const { data, error } = await supabaseClient.auth.getSession();
+      const { data } = await supabaseClient.auth.getSession();
       if (data?.session?.user) {
         currentUser = data.session.user;
-        userEmailTag.textContent = currentUser.email || '';
+        sidebarUserEmail.textContent = currentUser.email || '';
         showApp();
         await initAppAfterLogin();
       } else {
