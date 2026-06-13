@@ -519,7 +519,53 @@
         authMessage.classList.add('error');
       }
     });
+shareListBtn.addEventListener('click', async () => {
+  const list = getCurrentList();
+  if (!list) return;
 
+  const email = prompt('Share this list with which user email? (They must be registered)');
+  if (!email) return;
+
+  const trimmed = email.trim();
+  if (!trimmed) return;
+
+  // Find user in profiles
+  const { data: profiles, error } = await supabaseClient
+    .from('profiles')
+    .select('id, email')
+    .eq('email', trimmed)
+    .limit(1);
+
+  if (error) {
+    console.error('Profiles lookup error', error);
+    alert('Error while looking up user.');
+    return;
+  }
+
+  if (!profiles || profiles.length === 0) {
+    alert('No registered user found with that email.');
+    return;
+  }
+
+  const sharedUserId = profiles[0].id;
+
+  // Create share row
+  const { error: shareError } = await supabaseClient
+    .from('list_shares')
+    .insert({
+      list_id: list.id,
+      owner_id: currentUser.id,
+      shared_with_user_id: sharedUserId
+    });
+
+  if (shareError) {
+    console.error('Share error', shareError);
+    alert('Failed to share list.');
+    return;
+  }
+
+  alert('List shared. The other user will see it after they log in.');
+});
     logoutBtn.addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       currentUser = null;
