@@ -23,7 +23,7 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 12px;
     }
     .sidebar-header {
       display: flex;
@@ -85,13 +85,7 @@
       padding: 0;
       font-size: 14px;
     }
-    .sidebar-bottom {
-      margin-top: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-    .sidebar-bottom button {
+    .sidebar-button {
       width: 100%;
       padding: 6px 8px;
       border-radius: 4px;
@@ -136,9 +130,6 @@
         flex-direction: row;
         overflow-x: auto;
       }
-      .sidebar-bottom {
-        margin-top: 0;
-      }
     }
     .list-form, .item-form {
       display: flex;
@@ -182,6 +173,13 @@
       font-weight: 600;
       margin: 8px 0 4px;
       font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .category-subtotal {
+      font-size: 12px;
+      color: #4b5563;
     }
     table.items-table {
       width: 100%;
@@ -305,15 +303,14 @@
           <div id="sidebarUserEmail" class="sidebar-user"></div>
         </div>
 
+        <button id="newListBtn" type="button" class="sidebar-button">New list</button>
+
         <div>
           <div class="sidebar-section-title">Active lists</div>
           <ul id="activeListsSidebar" class="sidebar-list"></ul>
         </div>
 
-        <div class="sidebar-bottom">
-          <button id="newListBtn" type="button">New list</button>
-          <button id="logoutBtn" type="button">Logout</button>
-        </div>
+        <button id="logoutBtn" type="button" class="sidebar-button">Logout</button>
 
         <div>
           <div class="sidebar-section-title">Archived lists</div>
@@ -328,7 +325,7 @@
             <span id="currentListStatusTag" class="tag"></span>
           </div>
           <p class="info-text" id="shareInfo">
-            Lists are tied to your account. Log in with the same email on another device to use them there.
+            Lists are tied to your account. Later we can add sharing/email features here.
           </p>
 
           <form class="list-form" id="listTitleForm">
@@ -391,7 +388,6 @@
   </div>
 
   <script>
-    // --- Supabase config: replace with your values ---
     const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co'; // TODO
     const SUPABASE_ANON_KEY =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ'; // TODO
@@ -438,7 +434,7 @@
       return `${base} – ${formatDateTimeForTitle()}`;
     }
 
-    // --- Auth DOM ---
+    // Auth DOM
     const authContainer = document.getElementById('authContainer');
     const appContainer = document.getElementById('appContainer');
     const authForm = document.getElementById('authForm');
@@ -473,13 +469,13 @@
     const itemCatSelect = document.getElementById('itemCatSelect');
     const itemsContainer = document.getElementById('itemsContainer');
 
-    // --- State ---
+    // State
     let currentUser = null;
     let lists = [];
     let currentListId = null;
     let authMode = 'login';
 
-    // --- Auth helpers ---
+    // Auth helpers
     function showApp() {
       authContainer.style.display = 'none';
       appContainer.style.display = 'block';
@@ -502,6 +498,7 @@
         authToggleBtn.textContent = 'Login';
       }
     }
+
     authToggleBtn.addEventListener('click', () => {
       setAuthMode(authMode === 'login' ? 'register' : 'login');
     });
@@ -550,7 +547,7 @@
       showAuth();
     });
 
-    // --- Data helpers ---
+    // Data helpers
     function getCurrentList() {
       return lists.find((l) => l.id === currentListId) || null;
     }
@@ -559,12 +556,12 @@
       const { data, error } = await supabaseClient
         .from('lists')
         .select('*')
-        .eq('user_id', currentUser.id)
         .order('created_at', { ascending: true });
       if (error) {
         console.error('Error fetching lists', error);
         return [];
       }
+      // we rely on RLS to only return owned/shared lists
       return data || [];
     }
 
@@ -576,7 +573,6 @@
           updated_at: new Date().toISOString()
         })
         .eq('id', listId)
-        .eq('user_id', currentUser.id)
         .select()
         .single();
       if (error) {
@@ -606,7 +602,7 @@
       return data;
     }
 
-    // --- Sidebar rendering ---
+    // Sidebar rendering
     function renderSidebar() {
       activeListsSidebar.innerHTML = '';
       archivedListsSidebar.innerHTML = '';
@@ -666,7 +662,7 @@
       }
     }
 
-    // --- Current list / table rendering ---
+    // Current list / tables
     function renderCurrentList() {
       const list = getCurrentList();
       if (!list) {
@@ -687,17 +683,28 @@
       const items = list.items || [];
       itemsContainer.innerHTML = '';
 
-      let total = 0;
+      // totals
+      let totalAll = 0;
+      const totalsByCat = {};
+      CATEGORIES.forEach((c) => (totalsByCat[c] = 0));
+
       items.forEach((item) => {
         if (item.price != null && item.price !== '') {
           const num = Number(item.price);
-          if (!isNaN(num)) total += num;
+          if (!isNaN(num)) {
+            totalAll += num;
+            const cat =
+              item.category && CATEGORIES.includes(item.category)
+                ? item.category
+                : 'Other';
+            totalsByCat[cat] += num;
+          }
         }
       });
 
-      if (total > 0) {
+      if (totalAll > 0) {
         totalPriceTag.style.display = 'inline-block';
-        totalPriceTag.textContent = 'Total price: ' + total.toFixed(2);
+        totalPriceTag.textContent = 'Total: ' + totalAll.toFixed(2);
       } else {
         totalPriceTag.style.display = 'none';
       }
@@ -727,7 +734,17 @@
 
         const header = document.createElement('div');
         header.className = 'category-header';
-        header.textContent = cat;
+        const label = document.createElement('span');
+        label.textContent = cat;
+        const subtotalSpan = document.createElement('span');
+        subtotalSpan.className = 'category-subtotal';
+        if (totalsByCat[cat] > 0) {
+          subtotalSpan.textContent = 'Subtotal: ' + totalsByCat[cat].toFixed(2);
+        } else {
+          subtotalSpan.textContent = '';
+        }
+        header.appendChild(label);
+        header.appendChild(subtotalSpan);
         section.appendChild(header);
 
         const table = document.createElement('table');
@@ -898,7 +915,7 @@
       renderCurrentList();
     }
 
-    // --- Events: list title, complete, add item, new list ---
+    // Events
     listTitleForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const list = getCurrentList();
@@ -916,98 +933,4 @@
       const list = getCurrentList();
       if (!list) return;
       if (!confirm('Mark this list as completed and archive it?')) return;
-      const updated = await saveListPartial(list.id, { status: 'archived' });
-      if (updated) {
-        const idx = lists.findIndex((l) => l.id === list.id);
-        if (idx !== -1) lists[idx] = updated;
-        const anyActive = lists.find((l) => l.status === 'active');
-        currentListId = anyActive ? anyActive.id : list.id;
-        renderAll();
-      }
-    });
-
-    itemForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const list = getCurrentList();
-      if (!list || list.status === 'archived') return;
-      const name = itemNameInput.value.trim();
-      const qty = itemQtyInput.value.trim();
-      const priceRaw = itemPriceInput.value.trim();
-      const shop = itemShopInput.value.trim();
-      const cat = itemCatSelect.value;
-      if (!name) return;
-      const price = priceRaw === '' ? null : priceRaw;
-      const newItem = {
-        id: generateLocalId(),
-        name,
-        quantity: qty || null,
-        price,
-        shop: shop || null,
-        category: cat || 'Other',
-        done: false
-      };
-      list.items = list.items || [];
-      list.items.push(newItem);
-      const updated = await saveListPartial(list.id, { items: list.items });
-      if (updated) {
-        const idx = lists.findIndex((l) => l.id === list.id);
-        if (idx !== -1) lists[idx] = updated;
-        itemNameInput.value = '';
-        itemQtyInput.value = '';
-        itemPriceInput.value = '';
-        itemShopInput.value = '';
-        itemCatSelect.value = cat;
-        renderCurrentList();
-      }
-    });
-
-    newListBtn.addEventListener('click', async () => {
-      if (!currentUser) return;
-      const baseTitle = 'My grocery list';
-      const autoTitle = autoListTitle(baseTitle);
-      const title = prompt('New list title:', autoTitle);
-      if (title === null) return;
-      const finalTitle = title.trim() || autoTitle;
-      const newList = await createNewList(finalTitle, [], 'active');
-      if (newList) {
-        lists.push(newList);
-        currentListId = newList.id;
-        renderAll();
-      }
-    });
-
-    // --- Init after login ---
-    async function initAppAfterLogin() {
-      lists = await fetchLists();
-      if (lists.length === 0) {
-        const title = autoListTitle();
-        const newList = await createNewList(title, [], 'active');
-        if (newList) {
-          lists.push(newList);
-          currentListId = newList.id;
-        }
-      } else {
-        const firstActive = lists.find((l) => l.status === 'active');
-        currentListId = firstActive ? firstActive.id : lists[0].id;
-      }
-      renderAll();
-    }
-
-    async function checkExistingSession() {
-      const { data } = await supabaseClient.auth.getSession();
-      if (data?.session?.user) {
-        currentUser = data.session.user;
-        sidebarUserEmail.textContent = currentUser.email || '';
-        showApp();
-        await initAppAfterLogin();
-      } else {
-        showAuth();
-      }
-    }
-
-    // Init
-    setAuthMode('login');
-    checkExistingSession();
-  </script>
-</body>
-</html>
+      const updated = await
