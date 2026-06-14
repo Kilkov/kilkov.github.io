@@ -2,7 +2,7 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <title>Пазарски лист</title>
+  <title>Пазарски списък</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -299,9 +299,9 @@
   <!-- Auth container -->
   <div id="authContainer">
     <div class="card auth-card">
-      <h2 style="text-align:center;">Пазарски лист</h2>
+      <h2 style="text-align:center;">Пазарски списък</h2>
       <p style="text-align:center;font-size:13px;color:#555;">
-        Влез или се регистрирай, за да управляваш своите пазарски списъци.
+        
       </p>
       <form id="authForm" class="auth-form">
         <input id="authEmail" type="email" placeholder="Имейл" required />
@@ -335,7 +335,7 @@
         </div>
         <button id="logoutBtn" type="button" class="sidebar-button">Изход</button>
         <div>
-          <div class="sidebar-section-title">Архивирани списъци</div>
+          <div class="sidebar-section-title">стари списъци</div>
           <ul id="archivedListsSidebar" class="sidebar-list"></ul>
         </div>
       </aside>
@@ -356,7 +356,7 @@
               autocomplete="off"
             />
             <button type="submit" class="primary">Запази заглавие</button>
-            <button type="button" class="secondary" id="completeListBtn">Приключи списъка</button>
+            <button type="button" class="secondary" id="completeListBtn">Приключи пазара</button>
             <button type="button" class="secondary" id="shareListBtn">Сподели</button>
             <button type="button" class="secondary" id="deleteListBtn">Изтрий списък</button>
           </form>
@@ -380,7 +380,7 @@
                   <option value="Bread">Хляб</option>
                   <option value="Meat">Месо</option>
                   <option value="Fish">Риба</option>
-                  <option value="Pantry">Суха храна</option>
+                  <option value="Pantry">Варива</option>
                   <option value="Frozen">Замразени</option>
                   <option value="Drinks">Напитки</option>
                   <option value="Snacks">Снаксове</option>
@@ -824,7 +824,7 @@
         // превод на категорията
         const catBg = {
           Fruits:'Плодове', Vegetables:'Зеленчуци', Dairy:'Млечни',
-          Bread:'Хляб', Meat:'Месо', Fish:'Риба', Pantry:'Суха храна',
+          Bread:'Хляб', Meat:'Месо', Fish:'Риба', Pantry:'Варива',
           Frozen:'Замразени', Drinks:'Напитки', Snacks:'Снаксове',
           Cleaning:'Почистващи', Hygiene:'Хигиена', Baby:'Бебешки',
           Pets:'Домашни любимци', Pharmacy:'Аптека', Other:'Други'
