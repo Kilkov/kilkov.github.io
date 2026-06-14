@@ -659,7 +659,7 @@
       // Shared lists (active)
       if (activeShared.length === 0) {
         sharedListsSidebar.innerHTML =
-          '<li style="font-size:12px;color:#9ca3af;">No shared lists.</li>';
+          '<li style="font-size:12px;color:#9ca3af;"></li>';
       } else {
         activeShared.forEach(list => {
           const li = document.createElement('li');
@@ -688,7 +688,7 @@
       const allArchived = [...archivedOwned, ...archivedShared];
       if (allArchived.length === 0) {
         archivedListsSidebar.innerHTML =
-          '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+          '<li style="font-size:12px;color:#9ca3af;"></li>';
       } else {
         allArchived.forEach(list => {
           const li = document.createElement('li');
