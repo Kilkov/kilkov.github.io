@@ -24,6 +24,7 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
+      flex-shrink: 0;
     }
     .sidebar-header {
       display: flex;
@@ -121,16 +122,7 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 16px;
     }
-    @media (max-width: 900px) {
-      .root {
-        flex-direction: column;
-      }
-      .sidebar {
-        width: 100%;
-        flex-direction: row;
-        overflow-x: auto;
-      }
-    }
+
     .list-form, .item-form {
       display: flex;
       gap: 8px;
@@ -269,8 +261,41 @@
     .auth-message.info {
       color: #2563eb;
     }
-  </style>
 
+    /* Mobile tweaks */
+    @media (max-width: 900px) {
+      .root {
+        flex-direction: column;
+      }
+      .sidebar {
+        width: 100%;
+        flex-direction: row;
+        align-items: flex-start;
+        overflow-x: auto;
+      }
+      .sidebar-header {
+        min-width: 180px;
+      }
+      .sidebar-section-title {
+        white-space: nowrap;
+      }
+      .app {
+        padding: 12px;
+      }
+    }
+    @media (max-width: 600px) {
+      .list-form, .item-form {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .card {
+        padding: 12px;
+      }
+      button.primary, button.secondary {
+        width: 100%;
+      }
+    }
+  </style>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -303,25 +328,26 @@
           <div id="sidebarUserEmail" class="sidebar-user"></div>
         </div>
 
-       <button id="newListBtn" type="button" class="sidebar-button">New list</button>
+        <button id="newListBtn" type="button" class="sidebar-button">New list</button>
 
-<div>
-  <div class="sidebar-section-title">Active lists</div>
-  <ul id="activeListsSidebar" class="sidebar-list"></ul>
-</div>
+        <div>
+          <div class="sidebar-section-title">Active lists</div>
+          <ul id="activeListsSidebar" class="sidebar-list"></ul>
+        </div>
 
-<div>
-  <div class="sidebar-section-title">Shared lists</div>
-  <ul id="sharedListsSidebar" class="sidebar-list"></ul>
-</div>
+        <div>
+          <div class="sidebar-section-title">Shared lists</div>
+          <ul id="sharedListsSidebar" class="sidebar-list"></ul>
+        </div>
 
-<button id="logoutBtn" type="button" class="sidebar-button">Logout</button>
+        <button id="logoutBtn" type="button" class="sidebar-button">Logout</button>
 
-<div>
-  <div class="sidebar-section-title">Archived lists</div>
-  <ul id="archivedListsSidebar" class="sidebar-list"></ul>
-</div>
-</aside>
+        <div>
+          <div class="sidebar-section-title">Archived lists</div>
+          <ul id="archivedListsSidebar" class="sidebar-list"></ul>
+        </div>
+      </aside>
+
       <main class="app">
         <div class="card">
           <div class="section-title-row">
@@ -332,18 +358,16 @@
             Lists are tied to your account. Subtotals are shown per category.
           </p>
 
-         <form class="list-form" id="listTitleForm">
-  <input
-    id="listTitleInput"
-    type="text"
-    placeholder="List title"
-    autocomplete="off"
-  />
-  <button type="submit" class="primary">Save title</button>
-  <button type="button" class="secondary" id="completeListBtn">Mark completed</button>
-  <button type="button" class="secondary" id="shareListBtn">Share list</button>
-  <!-- emailListBtn will be used later -->
-</form>
+          <form class="list-form" id="listTitleForm">
+            <input
+              id="listTitleInput"
+              type="text"
+              placeholder="List title"
+              autocomplete="off"
+            />
+            <button type="submit" class="primary">Save title</button>
+            <button type="button" class="secondary" id="completeListBtn">Mark completed</button>
+          </form>
         </div>
 
         <div class="layout">
@@ -393,9 +417,9 @@
   </div>
 
   <script>
-    // 1) Put your real Supabase values here
-    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co';           // <- replace
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ';                        // <- replace
+    const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co';
+    const SUPABASE_ANON_KEY =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ';
 
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -420,7 +444,7 @@
       return `${base} – ${formatDateTimeForTitle()}`;
     }
 
-    // Auth DOM
+    // DOM references
     const authContainer = document.getElementById('authContainer');
     const appContainer = document.getElementById('appContainer');
     const authForm = document.getElementById('authForm');
@@ -430,12 +454,11 @@
     const authToggleBtn = document.getElementById('authToggleBtn');
     const authToggleText = document.getElementById('authToggleText');
     const authSubmitBtn = document.getElementById('authSubmitBtn');
-    const sharedListsSidebar = document.getElementById('sharedListsSidebar');
 
     const sidebarUserEmail = document.getElementById('sidebarUserEmail');
     const logoutBtn = document.getElementById('logoutBtn');
-
     const activeListsSidebar = document.getElementById('activeListsSidebar');
+    const sharedListsSidebar = document.getElementById('sharedListsSidebar');
     const archivedListsSidebar = document.getElementById('archivedListsSidebar');
     const newListBtn = document.getElementById('newListBtn');
 
@@ -455,7 +478,6 @@
     const itemShopInput = document.getElementById('itemShopInput');
     const itemCatSelect = document.getElementById('itemCatSelect');
     const itemsContainer = document.getElementById('itemsContainer');
-    const shareListBtn = document.getElementById('shareListBtn');
 
     // State
     let currentUser = null;
@@ -490,92 +512,41 @@
       setAuthMode(authMode === 'login' ? 'register' : 'login');
     });
 
-authForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  authMessage.textContent = '';
-  authMessage.className = 'auth-message';
-
-  const email = authEmail.value.trim();
-  const password = authPassword.value;
-  if (!email || !password) {
-    authMessage.textContent = 'Please enter email and password.';
-    authMessage.classList.add('error');
-    return;
-  }
-
-  try {
-    if (authMode === 'register') {
-      const { error } = await supabaseClient.auth.signUp({ email, password });
-      console.log('signUp result', { error });
-      if (error) throw error;
-      authMessage.textContent = 'Registered. Please log in.';
-      authMessage.classList.add('info');
-      setAuthMode('login');
-    } else {
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-      });
-      console.log('signIn result', { data, error }); // LOG HERE
-      if (error) throw error;
-      currentUser = data.user;
-      sidebarUserEmail.textContent = currentUser.email || '';
-      showApp();
-      await initAppAfterLogin();
-    }
-  } catch (err) {
-    console.error('Auth error', err);  // LOG RAW ERROR
-    authMessage.textContent = err.message || 'Authentication error';
-    authMessage.classList.add('error');
-  }
-});
-shareListBtn.addEventListener('click', async () => {
-  const list = getCurrentList();
-  if (!list) return;
-
-  const email = prompt('Share this list with which user email? (They must be registered)');
-  if (!email) return;
-
-  const trimmed = email.trim();
-  if (!trimmed) return;
-
-  // Find user in profiles
-  const { data: profiles, error } = await supabaseClient
-    .from('profiles')
-    .select('id, email')
-    .eq('email', trimmed)
-    .limit(1);
-
-  if (error) {
-    console.error('Profiles lookup error', error);
-    alert('Error while looking up user.');
-    return;
-  }
-
-  if (!profiles || profiles.length === 0) {
-    alert('No registered user found with that email.');
-    return;
-  }
-
-  const sharedUserId = profiles[0].id;
-
-  // Create share row
-  const { error: shareError } = await supabaseClient
-    .from('list_shares')
-    .insert({
-      list_id: list.id,
-      owner_id: currentUser.id,
-      shared_with_user_id: sharedUserId
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authMessage.textContent = '';
+      authMessage.className = 'auth-message';
+      const email = authEmail.value.trim();
+      const password = authPassword.value;
+      if (!email || !password) {
+        authMessage.textContent = 'Please enter email and password.';
+        authMessage.classList.add('error');
+        return;
+      }
+      try {
+        if (authMode === 'register') {
+          const { error } = await supabaseClient.auth.signUp({ email, password });
+          if (error) throw error;
+          authMessage.textContent = 'Registered. Please log in.';
+          authMessage.classList.add('info');
+          setAuthMode('login');
+        } else {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+          if (error) throw error;
+          currentUser = data.user;
+          sidebarUserEmail.textContent = currentUser.email || '';
+          showApp();
+          await initAppAfterLogin();
+        }
+      } catch (err) {
+        authMessage.textContent = err.message || 'Authentication error';
+        authMessage.classList.add('error');
+      }
     });
 
-  if (shareError) {
-    console.error('Share error', shareError);
-    alert('Failed to share list.');
-    return;
-  }
-
-  alert('List shared. The other user will see it after they log in.');
-});
     logoutBtn.addEventListener('click', async () => {
       await supabaseClient.auth.signOut();
       currentUser = null;
@@ -616,6 +587,19 @@ shareListBtn.addEventListener('click', async () => {
       return data;
     }
 
+    async function deleteListFromDb(listId) {
+      const { error } = await supabaseClient
+        .from('lists')
+        .delete()
+        .eq('id', listId);
+      if (error) {
+        console.error('Error deleting list', error);
+        alert('Error deleting list.');
+        return false;
+      }
+      return true;
+    }
+
     async function createNewList(title, items = [], status = 'active') {
       const { data, error } = await supabaseClient
         .from('lists')
@@ -635,108 +619,150 @@ shareListBtn.addEventListener('click', async () => {
       return data;
     }
 
-function renderSidebar() {
-  activeListsSidebar.innerHTML = '';
-  sharedListsSidebar.innerHTML = '';
-  archivedListsSidebar.innerHTML = '';
+    function renderSidebar() {
+      activeListsSidebar.innerHTML = '';
+      sharedListsSidebar.innerHTML = '';
+      archivedListsSidebar.innerHTML = '';
 
-  // Lists this user owns
-  const ownedLists = lists.filter(l => l.user_id === currentUser.id);
-  // Lists shared with this user (not owned by them)
-  const sharedLists = lists.filter(l => l.user_id !== currentUser.id);
+      const ownedLists = lists.filter(l => l.user_id === currentUser.id);
+      const sharedLists = lists.filter(l => l.user_id !== currentUser.id);
 
-  const activeOwned = ownedLists.filter(l => l.status === 'active');
-  const archivedOwned = ownedLists.filter(l => l.status === 'archived');
+      const activeOwned = ownedLists.filter(l => l.status === 'active');
+      const archivedOwned = ownedLists.filter(l => l.status === 'archived');
+      const activeShared = sharedLists.filter(l => l.status === 'active');
+      const archivedShared = sharedLists.filter(l => l.status === 'archived');
 
-  const activeShared = sharedLists.filter(l => l.status === 'active');
-  const archivedShared = sharedLists.filter(l => l.status === 'archived');
-
-  // ----- Active lists (owned only) -----
-  if (activeOwned.length === 0) {
-    activeListsSidebar.innerHTML =
-      '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
-  } else {
-    activeOwned.forEach(list => {
-      const li = document.createElement('li');
-      li.className =
-        'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
-      li.addEventListener('click', () => {
-        currentListId = list.id;
-        renderAll();
-      });
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = list.title;
-      li.appendChild(nameSpan);
-      activeListsSidebar.appendChild(li);
-    });
-  }
-
-  // ----- Shared lists (active only, not owned) -----
-  if (activeShared.length === 0) {
-    sharedListsSidebar.innerHTML =
-      '<li style="font-size:12px;color:#9ca3af;">No shared lists.</li>';
-  } else {
-    activeShared.forEach(list => {
-      const li = document.createElement('li');
-      li.className =
-        'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
-      li.addEventListener('click', () => {
-        currentListId = list.id;
-        renderAll();
-      });
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = list.title;
-      li.appendChild(nameSpan);
-
-      // Optional small marker to show who's the owner
-      const ownerSpan = document.createElement('span');
-      ownerSpan.style.fontSize = '11px';
-      ownerSpan.style.color = '#9ca3af';
-      ownerSpan.textContent = ' shared';
-      li.appendChild(ownerSpan);
-
-      sharedListsSidebar.appendChild(li);
-    });
-  }
-
-  // ----- Archived lists (owned + shared, all together) -----
-  const allArchived = [...archivedOwned, ...archivedShared];
-
-  if (allArchived.length === 0) {
-    archivedListsSidebar.innerHTML =
-      '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
-  } else {
-    allArchived.forEach(list => {
-      const li = document.createElement('li');
-      li.className = 'sidebar-list-item readonly';
-      const nameSpan = document.createElement('span');
-      nameSpan.textContent = list.title;
-      li.appendChild(nameSpan);
-
-      // Allow reuse only if we own the archived list
-      if (list.user_id === currentUser.id) {
-        const reuseBtn = document.createElement('button');
-        reuseBtn.type = 'button';
-        reuseBtn.textContent = '↩';
-        reuseBtn.title = 'Reuse this list';
-        reuseBtn.addEventListener('click', async (e) => {
-          e.stopPropagation();
-          const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
-          const newTitle = autoListTitle(list.title);
-          const newList = await createNewList(newTitle, resetItems, 'active');
-          if (newList) {
-            lists.push(newList);
-            currentListId = newList.id;
+      // Active lists (owned)
+      if (activeOwned.length === 0) {
+        activeListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
+      } else {
+        activeOwned.forEach(list => {
+          const li = document.createElement('li');
+          li.className =
+            'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+          li.addEventListener('click', () => {
+            currentListId = list.id;
             renderAll();
-          }
+          });
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+
+          // Delete button (only owner)
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.title = 'Delete list';
+          delBtn.textContent = '×';
+          delBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!confirm(`Delete list "${list.title}"?`)) return;
+            const ok = await deleteListFromDb(list.id);
+            if (ok) {
+              lists = lists.filter(l => l.id !== list.id);
+              if (currentListId === list.id) {
+                const anyActive = lists.find(l => l.status === 'active');
+                currentListId = anyActive ? anyActive.id : (lists[0]?.id || null);
+              }
+              renderAll();
+            }
+          });
+          li.appendChild(delBtn);
+
+          activeListsSidebar.appendChild(li);
         });
-        li.appendChild(reuseBtn);
       }
 
-      archivedListsSidebar.appendChild(li);
-    });
-  }
-}
+      // Shared lists (active)
+      if (activeShared.length === 0) {
+        sharedListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No shared lists.</li>';
+      } else {
+        activeShared.forEach(list => {
+          const li = document.createElement('li');
+          li.className =
+            'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+          li.addEventListener('click', () => {
+            currentListId = list.id;
+            renderAll();
+          });
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+
+          const ownerSpan = document.createElement('span');
+          ownerSpan.style.fontSize = '11px';
+          ownerSpan.style.color = '#9ca3af';
+          ownerSpan.textContent = ' shared';
+          li.appendChild(ownerSpan);
+
+          sharedListsSidebar.appendChild(li);
+        });
+      }
+
+      // Archived lists (owned + shared)
+      const allArchived = [...archivedOwned, ...archivedShared];
+      if (allArchived.length === 0) {
+        archivedListsSidebar.innerHTML =
+          '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+      } else {
+        allArchived.forEach(list => {
+          const li = document.createElement('li');
+          li.className = 'sidebar-list-item readonly';
+          li.addEventListener('click', () => {
+            currentListId = list.id;
+            renderAll();
+          });
+
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = list.title;
+          li.appendChild(nameSpan);
+
+          // Allow reuse only if owner
+          if (list.user_id === currentUser.id) {
+            const reuseBtn = document.createElement('button');
+            reuseBtn.type = 'button';
+            reuseBtn.textContent = '↩';
+            reuseBtn.title = 'Reuse this list';
+            reuseBtn.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
+              const newTitle = autoListTitle(list.title);
+              const newList = await createNewList(newTitle, resetItems, 'active');
+              if (newList) {
+                lists.push(newList);
+                currentListId = newList.id;
+                renderAll();
+              }
+            });
+            li.appendChild(reuseBtn);
+
+            const delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.title = 'Delete list';
+            delBtn.textContent = '×';
+            delBtn.addEventListener('click', async (e) => {
+              e.stopPropagation();
+              if (!confirm(`Delete list "${list.title}"?`)) return;
+              const ok = await deleteListFromDb(list.id);
+              if (ok) {
+                lists = lists.filter(l => l.id !== list.id);
+                if (currentListId === list.id) {
+                  const anyActive = lists.find(l => l.status === 'active');
+                  currentListId = anyActive ? anyActive.id : (lists[0]?.id || null);
+                }
+                renderAll();
+              }
+            });
+            li.appendChild(delBtn);
+          }
+
+          archivedListsSidebar.appendChild(li);
+        });
+      }
+    }
 
     function renderCurrentList() {
       const list = getCurrentList();
@@ -780,14 +806,17 @@ function renderSidebar() {
       }
 
       if (items.length === 0) {
-        itemsContainer.innerHTML = '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
+        itemsContainer.innerHTML =
+          '<p style="color:#666;font-size:14px;margin-top:8px;">No items yet.</p>';
         return;
       }
 
       const grouped = {};
       CATEGORIES.forEach(c => grouped[c] = []);
       items.forEach(item => {
-        const cat = item.category && CATEGORIES.includes(item.category) ? item.category : 'Other';
+        const cat = item.category && CATEGORIES.includes(item.category)
+          ? item.category
+          : 'Other';
         grouped[cat].push(item);
       });
 
@@ -815,7 +844,6 @@ function renderSidebar() {
 
         const table = document.createElement('table');
         table.className = 'items-table';
-
         const thead = document.createElement('thead');
         thead.innerHTML = `
           <tr>
@@ -1010,6 +1038,7 @@ function renderSidebar() {
       e.preventDefault();
       const list = getCurrentList();
       if (!list || list.status === 'archived') return;
+
       const name = itemNameInput.value.trim();
       if (!name) return;
       const qty = itemQtyInput.value.trim();
@@ -1027,6 +1056,7 @@ function renderSidebar() {
         category: cat || 'Other',
         done: false
       };
+
       list.items = list.items || [];
       list.items.push(newItem);
       const updated = await saveListPartial(list.id, { items: list.items });
