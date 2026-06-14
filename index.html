@@ -630,59 +630,108 @@ shareListBtn.addEventListener('click', async () => {
       return data;
     }
 
-    function renderSidebar() {
-      activeListsSidebar.innerHTML = '';
-      archivedListsSidebar.innerHTML = '';
+function renderSidebar() {
+  activeListsSidebar.innerHTML = '';
+  sharedListsSidebar.innerHTML = '';
+  archivedListsSidebar.innerHTML = '';
 
-      const activeLists = lists.filter(l => l.status === 'active');
-      const archivedLists = lists.filter(l => l.status === 'archived');
+  // Lists this user owns
+  const ownedLists = lists.filter(l => l.user_id === currentUser.id);
+  // Lists shared with this user (not owned by them)
+  const sharedLists = lists.filter(l => l.user_id !== currentUser.id);
 
-      if (activeLists.length === 0) {
-        activeListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
-      } else {
-        activeLists.forEach(list => {
-          const li = document.createElement('li');
-          li.className = 'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
-          li.addEventListener('click', () => {
-            currentListId = list.id;
+  const activeOwned = ownedLists.filter(l => l.status === 'active');
+  const archivedOwned = ownedLists.filter(l => l.status === 'archived');
+
+  const activeShared = sharedLists.filter(l => l.status === 'active');
+  const archivedShared = sharedLists.filter(l => l.status === 'archived');
+
+  // ----- Active lists (owned only) -----
+  if (activeOwned.length === 0) {
+    activeListsSidebar.innerHTML =
+      '<li style="font-size:12px;color:#9ca3af;">No active lists.</li>';
+  } else {
+    activeOwned.forEach(list => {
+      const li = document.createElement('li');
+      li.className =
+        'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+      li.addEventListener('click', () => {
+        currentListId = list.id;
+        renderAll();
+      });
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = list.title;
+      li.appendChild(nameSpan);
+      activeListsSidebar.appendChild(li);
+    });
+  }
+
+  // ----- Shared lists (active only, not owned) -----
+  if (activeShared.length === 0) {
+    sharedListsSidebar.innerHTML =
+      '<li style="font-size:12px;color:#9ca3af;">No shared lists.</li>';
+  } else {
+    activeShared.forEach(list => {
+      const li = document.createElement('li');
+      li.className =
+        'sidebar-list-item' + (list.id === currentListId ? ' active' : '');
+      li.addEventListener('click', () => {
+        currentListId = list.id;
+        renderAll();
+      });
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = list.title;
+      li.appendChild(nameSpan);
+
+      // Optional small marker to show who's the owner
+      const ownerSpan = document.createElement('span');
+      ownerSpan.style.fontSize = '11px';
+      ownerSpan.style.color = '#9ca3af';
+      ownerSpan.textContent = ' shared';
+      li.appendChild(ownerSpan);
+
+      sharedListsSidebar.appendChild(li);
+    });
+  }
+
+  // ----- Archived lists (owned + shared, all together) -----
+  const allArchived = [...archivedOwned, ...archivedShared];
+
+  if (allArchived.length === 0) {
+    archivedListsSidebar.innerHTML =
+      '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
+  } else {
+    allArchived.forEach(list => {
+      const li = document.createElement('li');
+      li.className = 'sidebar-list-item readonly';
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = list.title;
+      li.appendChild(nameSpan);
+
+      // Allow reuse only if we own the archived list
+      if (list.user_id === currentUser.id) {
+        const reuseBtn = document.createElement('button');
+        reuseBtn.type = 'button';
+        reuseBtn.textContent = '↩';
+        reuseBtn.title = 'Reuse this list';
+        reuseBtn.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
+          const newTitle = autoListTitle(list.title);
+          const newList = await createNewList(newTitle, resetItems, 'active');
+          if (newList) {
+            lists.push(newList);
+            currentListId = newList.id;
             renderAll();
-          });
-          const nameSpan = document.createElement('span');
-          nameSpan.textContent = list.title;
-          li.appendChild(nameSpan);
-          activeListsSidebar.appendChild(li);
+          }
         });
+        li.appendChild(reuseBtn);
       }
 
-      if (archivedLists.length === 0) {
-        archivedListsSidebar.innerHTML = '<li style="font-size:12px;color:#9ca3af;">No archived lists.</li>';
-      } else {
-        archivedLists.forEach(list => {
-          const li = document.createElement('li');
-          li.className = 'sidebar-list-item readonly';
-          const nameSpan = document.createElement('span');
-          nameSpan.textContent = list.title;
-          li.appendChild(nameSpan);
-          const reuseBtn = document.createElement('button');
-          reuseBtn.type = 'button';
-          reuseBtn.textContent = '↩';
-          reuseBtn.title = 'Reuse this list';
-          reuseBtn.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
-            const newTitle = autoListTitle(list.title);
-            const newList = await createNewList(newTitle, resetItems, 'active');
-            if (newList) {
-              lists.push(newList);
-              currentListId = newList.id;
-              renderAll();
-            }
-          });
-          li.appendChild(reuseBtn);
-          archivedListsSidebar.appendChild(li);
-        });
-      }
-    }
+      archivedListsSidebar.appendChild(li);
+    });
+  }
+}
 
     function renderCurrentList() {
       const list = getCurrentList();
