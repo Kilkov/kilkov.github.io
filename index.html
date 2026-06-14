@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pazarski list</title>
+  <title>ПАЗАР</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -299,7 +299,7 @@
   <!-- Auth container -->
   <div id="authContainer">
     <div class="card auth-card">
-      <h2 style="text-align:center;">Pazarski list</h2>
+      <h2 style="text-align:center;">ПАЗАР</h2>
       <p style="text-align:center;font-size:13px;color:#555;">
         Login or register to manage your shopping lists.
       </p>
@@ -320,28 +320,28 @@
     <div class="root">
       <aside class="sidebar">
         <div class="sidebar-header">
-          <div class="sidebar-title">Pazarski list</div>
+          <div class="sidebar-title">СПИСЪК</div>
           <div id="sidebarUserEmail" class="sidebar-user"></div>
         </div>
         <button id="newListBtn" type="button" class="sidebar-button">New list</button>
         <div>
-          <div class="sidebar-section-title">Active lists</div>
+          <div class="sidebar-section-title">Активен списък</div>
           <ul id="activeListsSidebar" class="sidebar-list"></ul>
         </div>
         <div>
-          <div class="sidebar-section-title">Shared lists</div>
+          <div class="sidebar-section-title">Споделен списък</div>
           <ul id="sharedListsSidebar" class="sidebar-list"></ul>
         </div>
         <button id="logoutBtn" type="button" class="sidebar-button">Logout</button>
         <div>
-          <div class="sidebar-section-title">Archived lists</div>
+          <div class="sidebar-section-title">Стари списъци</div>
           <ul id="archivedListsSidebar" class="sidebar-list"></ul>
         </div>
       </aside>
       <main class="app">
         <div class="card">
           <div class="section-title-row">
-            <h1>Shopping list</h1>
+            <h1>Списък</h1>
             <span id="currentListStatusTag" class="tag"></span>
           </div>
           <p class="info-text">
@@ -354,10 +354,10 @@
               placeholder="List title"
               autocomplete="off"
             />
-            <button type="submit" class="primary">Save title</button>
-            <button type="button" class="secondary" id="completeListBtn">Mark completed</button>
-            <button type="button" class="secondary" id="shareListBtn">Share list</button>
-            <button type="button" class="secondary" id="deleteListBtn">Delete list</button>
+            <button type="submit" class="primary">запази име</button>
+            <button type="button" class="secondary" id="completeListBtn">готов</button>
+            <button type="button" class="secondary" id="shareListBtn">сподели списък</button>
+            <button type="button" class="secondary" id="deleteListBtn">изтрий списък</button>
           </form>
         </div>
         <div class="layout">
@@ -373,24 +373,20 @@
                 <input id="itemPriceInput" type="number" step="0.01" min="0" placeholder="Price" autocomplete="off" />
                 <input id="itemShopInput" type="text" placeholder="Shop" autocomplete="off" />
                 <select id="itemCatSelect">
-                  <option value="Fruits">Fruits</option>
-                  <option value="Vegetables">Vegetables</option>
-                  <option value="Dairy">Dairy</option>
-                  <option value="Bread">Bread</option>
-                  <option value="Meat">Meat</option>
-                  <option value="Fish">Fish</option>
-                  <option value="Pantry">Pantry</option>
-                  <option value="Frozen">Frozen</option>
-                  <option value="Drinks">Drinks</option>
-                  <option value="Snacks">Snacks</option>
-                  <option value="Cleaning">Cleaning</option>
-                  <option value="Hygiene">Hygiene</option>
-                  <option value="Baby">Baby</option>
-                  <option value="Pets">Pets</option>
-                  <option value="Pharmacy">Pharmacy</option>
-                  <option value="Other">Other</option>
+                  <option value="Fruits">Плодове</option>
+                  <option value="Vegetables">Зеленчуци</option>
+                  <option value="Dairy">Млечни</option>
+                  <option value="Bread">Хляб</option>
+                  <option value="Meat">Месо</option>
+                  <option value="Fish">Риба</option>
+                  <option value="Frozen">Замразени</option>
+                  <option value="Drinks">Напитки</option>
+                  <option value="Snacks">Снаксове</option>
+                  <option value="Cleaning">Препарати</option>
+                  <option value="Pharmacy">Лекарства</option>
+                  <option value="Other">Други</option>
                 </select>
-                <button type="submit" class="primary">Add item</button>
+                <button type="submit" class="primary">Добави продукт</button>
               </form>
               <div id="itemsContainer"></div>
             </div>
