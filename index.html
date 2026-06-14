@@ -96,7 +96,6 @@
       cursor: pointer;
       font-size: 13px;
     }
-
     .app {
       flex: 1;
       max-width: 1000px;
@@ -122,7 +121,6 @@
       grid-template-columns: minmax(0, 1fr);
       gap: 16px;
     }
-
     .list-form, .item-form {
       display: flex;
       gap: 8px;
@@ -261,7 +259,6 @@
     .auth-message.info {
       color: #2563eb;
     }
-
     /* Mobile tweaks */
     @media (max-width: 900px) {
       .root {
@@ -318,7 +315,6 @@
       <p id="authMessage" class="auth-message"></p>
     </div>
   </div>
-
   <!-- Main app container -->
   <div id="appContainer" style="display:none;">
     <div class="root">
@@ -327,27 +323,21 @@
           <div class="sidebar-title">Pazarski list</div>
           <div id="sidebarUserEmail" class="sidebar-user"></div>
         </div>
-
         <button id="newListBtn" type="button" class="sidebar-button">New list</button>
-
         <div>
           <div class="sidebar-section-title">Active lists</div>
           <ul id="activeListsSidebar" class="sidebar-list"></ul>
         </div>
-
         <div>
           <div class="sidebar-section-title">Shared lists</div>
           <ul id="sharedListsSidebar" class="sidebar-list"></ul>
         </div>
-
         <button id="logoutBtn" type="button" class="sidebar-button">Logout</button>
-
         <div>
           <div class="sidebar-section-title">Archived lists</div>
           <ul id="archivedListsSidebar" class="sidebar-list"></ul>
         </div>
       </aside>
-
       <main class="app">
         <div class="card">
           <div class="section-title-row">
@@ -357,7 +347,6 @@
           <p class="info-text">
             Lists are tied to your account. Subtotals are shown per category.
           </p>
-
           <form class="list-form" id="listTitleForm">
             <input
               id="listTitleInput"
@@ -367,9 +356,9 @@
             />
             <button type="submit" class="primary">Save title</button>
             <button type="button" class="secondary" id="completeListBtn">Mark completed</button>
+            <button type="button" class="secondary" id="deleteListBtn">Delete list</button>
           </form>
         </div>
-
         <div class="layout">
           <div>
             <div class="card" id="currentListCard" style="display:none;">
@@ -377,7 +366,6 @@
                 <h2 id="currentListTitle" style="margin:0;"></h2>
                 <span id="totalPriceTag" class="tag" style="display:none;"></span>
               </div>
-
               <form class="item-form" id="itemForm">
                 <input id="itemNameInput" type="text" placeholder="Item" autocomplete="off" />
                 <input id="itemQtyInput" type="text" placeholder="Qty (e.g. 2, 1kg)" autocomplete="off" />
@@ -403,24 +391,20 @@
                 </select>
                 <button type="submit" class="primary">Add item</button>
               </form>
-
               <div id="itemsContainer"></div>
             </div>
           </div>
         </div>
-
         <div class="footer">
           Lists are stored in Supabase tied to your account.
         </div>
       </main>
     </div>
   </div>
-
   <script>
     const SUPABASE_URL = 'https://yuyzpgfgynxiuqgcvhhe.supabase.co';
     const SUPABASE_ANON_KEY =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl1eXpwZ2ZneW54aXVxZ2N2aGhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTY0MjYsImV4cCI6MjA5NTI5MjQyNn0.uz9sAeR0xXAJMY5rwW8pNNOLOsmLk3Vh2NmNDVtirSQ';
-
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const CATEGORIES = [
@@ -466,6 +450,7 @@
     const listTitleInput = document.getElementById('listTitleInput');
     const currentListStatusTag = document.getElementById('currentListStatusTag');
     const completeListBtn = document.getElementById('completeListBtn');
+    const deleteListBtn = document.getElementById('deleteListBtn');
 
     const currentListCard = document.getElementById('currentListCard');
     const currentListTitle = document.getElementById('currentListTitle');
@@ -720,7 +705,7 @@
           nameSpan.textContent = list.title;
           li.appendChild(nameSpan);
 
-          // Allow reuse only if owner
+          // Allow reuse & delete only if owner
           if (list.user_id === currentUser.id) {
             const reuseBtn = document.createElement('button');
             reuseBtn.type = 'button';
@@ -792,7 +777,9 @@
           const num = Number(item.price);
           if (!isNaN(num)) {
             totalAll += num;
-            const cat = item.category && CATEGORIES.includes(item.category) ? item.category : 'Other';
+            const cat = item.category && CATEGORIES.includes(item.category)
+              ? item.category
+              : 'Other';
             totalsByCat[cat] += num;
           }
         }
@@ -844,6 +831,7 @@
 
         const table = document.createElement('table');
         table.className = 'items-table';
+
         const thead = document.createElement('thead');
         thead.innerHTML = `
           <tr>
@@ -1034,18 +1022,32 @@
       }
     });
 
+    deleteListBtn.addEventListener('click', async () => {
+      const list = getCurrentList();
+      if (!list) return;
+      if (list.user_id !== currentUser.id) {
+        alert('You can only delete lists that you own.');
+        return;
+      }
+      if (!confirm(`Delete list "${list.title}"?`)) return;
+      const ok = await deleteListFromDb(list.id);
+      if (!ok) return;
+      lists = lists.filter(l => l.id !== list.id);
+      const anyActive = lists.find(l => l.status === 'active');
+      currentListId = anyActive ? anyActive.id : (lists[0]?.id || null);
+      renderAll();
+    });
+
     itemForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const list = getCurrentList();
       if (!list || list.status === 'archived') return;
-
       const name = itemNameInput.value.trim();
       if (!name) return;
       const qty = itemQtyInput.value.trim();
       const priceRaw = itemPriceInput.value.trim();
       const shop = itemShopInput.value.trim();
       const cat = itemCatSelect.value;
-
       const price = priceRaw === '' ? null : priceRaw;
       const newItem = {
         id: generateLocalId(),
@@ -1056,7 +1058,6 @@
         category: cat || 'Other',
         done: false
       };
-
       list.items = list.items || [];
       list.items.push(newItem);
       const updated = await saveListPartial(list.id, { items: list.items });
