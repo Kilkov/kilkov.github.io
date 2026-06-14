@@ -490,40 +490,45 @@
       setAuthMode(authMode === 'login' ? 'register' : 'login');
     });
 
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      authMessage.textContent = '';
-      authMessage.className = 'auth-message';
-      const email = authEmail.value.trim();
-      const password = authPassword.value;
-      if (!email || !password) {
-        authMessage.textContent = 'Please enter email and password.';
-        authMessage.classList.add('error');
-        return;
-      }
-      try {
-        if (authMode === 'register') {
-          const { error } = await supabaseClient.auth.signUp({ email, password });
-          if (error) throw error;
-          authMessage.textContent = 'Registered. Please log in.';
-          authMessage.classList.add('info');
-          setAuthMode('login');
-        } else {
-          const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email,
-            password
-          });
-          if (error) throw error;
-          currentUser = data.user;
-          sidebarUserEmail.textContent = currentUser.email || '';
-          showApp();
-          await initAppAfterLogin();
-        }
-      } catch (err) {
-        authMessage.textContent = err.message || 'Authentication error';
-        authMessage.classList.add('error');
-      }
-    });
+authForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  authMessage.textContent = '';
+  authMessage.className = 'auth-message';
+
+  const email = authEmail.value.trim();
+  const password = authPassword.value;
+  if (!email || !password) {
+    authMessage.textContent = 'Please enter email and password.';
+    authMessage.classList.add('error');
+    return;
+  }
+
+  try {
+    if (authMode === 'register') {
+      const { error } = await supabaseClient.auth.signUp({ email, password });
+      console.log('signUp result', { error });
+      if (error) throw error;
+      authMessage.textContent = 'Registered. Please log in.';
+      authMessage.classList.add('info');
+      setAuthMode('login');
+    } else {
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+      console.log('signIn result', { data, error }); // LOG HERE
+      if (error) throw error;
+      currentUser = data.user;
+      sidebarUserEmail.textContent = currentUser.email || '';
+      showApp();
+      await initAppAfterLogin();
+    }
+  } catch (err) {
+    console.error('Auth error', err);  // LOG RAW ERROR
+    authMessage.textContent = err.message || 'Authentication error';
+    authMessage.classList.add('error');
+  }
+});
 shareListBtn.addEventListener('click', async () => {
   const list = getCurrentList();
   if (!list) return;
