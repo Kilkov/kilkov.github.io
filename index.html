@@ -356,6 +356,7 @@
             />
             <button type="submit" class="primary">Save title</button>
             <button type="button" class="secondary" id="completeListBtn">Mark completed</button>
+            <button type="button" class="secondary" id="shareListBtn">Share list</button>
             <button type="button" class="secondary" id="deleteListBtn">Delete list</button>
           </form>
         </div>
@@ -450,6 +451,7 @@
     const listTitleInput = document.getElementById('listTitleInput');
     const currentListStatusTag = document.getElementById('currentListStatusTag');
     const completeListBtn = document.getElementById('completeListBtn');
+    const shareListBtn = document.getElementById('shareListBtn');
     const deleteListBtn = document.getElementById('deleteListBtn');
 
     const currentListCard = document.getElementById('currentListCard');
@@ -635,7 +637,6 @@
           nameSpan.textContent = list.title;
           li.appendChild(nameSpan);
 
-          // Delete button (only owner)
           const delBtn = document.createElement('button');
           delBtn.type = 'button';
           delBtn.title = 'Delete list';
@@ -705,7 +706,6 @@
           nameSpan.textContent = list.title;
           li.appendChild(nameSpan);
 
-          // Allow reuse & delete only if owner
           if (list.user_id === currentUser.id) {
             const reuseBtn = document.createElement('button');
             reuseBtn.type = 'button';
@@ -1022,102 +1022,18 @@
       }
     });
 
+    // Share list button – simple info (no email popup)
+    shareListBtn.addEventListener('click', () => {
+      const list = getCurrentList();
+      if (!list) return;
+      alert(
+        'All logged in users can see all lists.\n' +
+        'Lists not owned by you appear under "Shared lists".'
+      );
+    });
+
     deleteListBtn.addEventListener('click', async () => {
       const list = getCurrentList();
       if (!list) return;
       if (list.user_id !== currentUser.id) {
-        alert('You can only delete lists that you own.');
-        return;
-      }
-      if (!confirm(`Delete list "${list.title}"?`)) return;
-      const ok = await deleteListFromDb(list.id);
-      if (!ok) return;
-      lists = lists.filter(l => l.id !== list.id);
-      const anyActive = lists.find(l => l.status === 'active');
-      currentListId = anyActive ? anyActive.id : (lists[0]?.id || null);
-      renderAll();
-    });
-
-    itemForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const list = getCurrentList();
-      if (!list || list.status === 'archived') return;
-      const name = itemNameInput.value.trim();
-      if (!name) return;
-      const qty = itemQtyInput.value.trim();
-      const priceRaw = itemPriceInput.value.trim();
-      const shop = itemShopInput.value.trim();
-      const cat = itemCatSelect.value;
-      const price = priceRaw === '' ? null : priceRaw;
-      const newItem = {
-        id: generateLocalId(),
-        name,
-        quantity: qty || null,
-        price,
-        shop: shop || null,
-        category: cat || 'Other',
-        done: false
-      };
-      list.items = list.items || [];
-      list.items.push(newItem);
-      const updated = await saveListPartial(list.id, { items: list.items });
-      if (updated) {
-        const idx = lists.findIndex(l => l.id === list.id);
-        if (idx !== -1) lists[idx] = updated;
-        itemNameInput.value = '';
-        itemQtyInput.value = '';
-        itemPriceInput.value = '';
-        itemShopInput.value = '';
-        itemCatSelect.value = cat;
-        renderCurrentList();
-      }
-    });
-
-    newListBtn.addEventListener('click', async () => {
-      if (!currentUser) return;
-      const baseTitle = 'My grocery list';
-      const autoTitle = autoListTitle(baseTitle);
-      const title = prompt('New list title:', autoTitle);
-      if (title === null) return;
-      const finalTitle = title.trim() || autoTitle;
-      const newList = await createNewList(finalTitle, [], 'active');
-      if (newList) {
-        lists.push(newList);
-        currentListId = newList.id;
-        renderAll();
-      }
-    });
-
-    async function initAppAfterLogin() {
-      lists = await fetchLists();
-      if (lists.length === 0) {
-        const title = autoListTitle();
-        const newList = await createNewList(title, [], 'active');
-        if (newList) {
-          lists.push(newList);
-          currentListId = newList.id;
-        }
-      } else {
-        const firstActive = lists.find(l => l.status === 'active');
-        currentListId = firstActive ? firstActive.id : lists[0].id;
-      }
-      renderAll();
-    }
-
-    async function checkExistingSession() {
-      const { data } = await supabaseClient.auth.getSession();
-      if (data?.session?.user) {
-        currentUser = data.session.user;
-        sidebarUserEmail.textContent = currentUser.email || '';
-        showApp();
-        await initAppAfterLogin();
-      } else {
-        showAuth();
-      }
-    }
-
-    setAuthMode('login');
-    checkExistingSession();
-  </script>
-</body>
-</html>
+        alert
