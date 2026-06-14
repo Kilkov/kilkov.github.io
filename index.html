@@ -2,7 +2,7 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
-  <title>Пазарски лист</title>
+  <title>Пазар</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     * { box-sizing: border-box; }
@@ -299,9 +299,9 @@
   <!-- Auth container -->
   <div id="authContainer">
     <div class="card auth-card">
-      <h2 style="text-align:center;">Пазарски лист</h2>
+      <h2 style="text-align:center;">Пазар</h2>
       <p style="text-align:center;font-size:13px;color:#555;">
-        Влез или се регистрирай, за да управляваш своите пазарски списъци.
+        
       </p>
       <form id="authForm" class="auth-form">
         <input id="authEmail" type="email" placeholder="Имейл" required />
@@ -321,7 +321,7 @@
     <div class="root">
       <aside class="sidebar">
         <div class="sidebar-header">
-          <div class="sidebar-title">Пазарски лист</div>
+          <div class="sidebar-title">Пазарски списък</div>
           <div id="sidebarUserEmail" class="sidebar-user"></div>
         </div>
         <button id="newListBtn" type="button" class="sidebar-button">Нов списък</button>
@@ -335,7 +335,7 @@
         </div>
         <button id="logoutBtn" type="button" class="sidebar-button">Изход</button>
         <div>
-          <div class="sidebar-section-title">Архивирани списъци</div>
+          <div class="sidebar-section-title">Стари списъци</div>
           <ul id="archivedListsSidebar" class="sidebar-list"></ul>
         </div>
       </aside>
@@ -346,7 +346,7 @@
             <span id="currentListStatusTag" class="tag"></span>
           </div>
           <p class="info-text">
-            Списъците се съхраняват в Supabase и са свързани с твоя акаунт. Показват се междинни суми по категории.
+            
           </p>
           <form class="list-form" id="listTitleForm">
             <input
@@ -355,7 +355,7 @@
               placeholder="Заглавие на списъка"
               autocomplete="off"
             />
-            <button type="submit" class="primary">Запази заглавие</button>
+            <button type="submit" class="primary">Запази име</button>
             <button type="button" class="secondary" id="completeListBtn">Приключи списъка</button>
             <button type="button" class="secondary" id="shareListBtn">Сподели</button>
             <button type="button" class="secondary" id="deleteListBtn">Изтрий списък</button>
@@ -380,14 +380,12 @@
                   <option value="Bread">Хляб</option>
                   <option value="Meat">Месо</option>
                   <option value="Fish">Риба</option>
-                  <option value="Pantry">Суха храна</option>
+                  <option value="Pantry">Тестени</option>
                   <option value="Frozen">Замразени</option>
                   <option value="Drinks">Напитки</option>
                   <option value="Snacks">Снаксове</option>
                   <option value="Cleaning">Почистващи</option>
                   <option value="Hygiene">Хигиена</option>
-                  <option value="Baby">Бебешки</option>
-                  <option value="Pets">Домашни любимци</option>
                   <option value="Pharmacy">Аптека</option>
                   <option value="Other">Други</option>
                 </select>
@@ -824,10 +822,9 @@
         // превод на категорията
         const catBg = {
           Fruits:'Плодове', Vegetables:'Зеленчуци', Dairy:'Млечни',
-          Bread:'Хляб', Meat:'Месо', Fish:'Риба', Pantry:'Суха храна',
+          Bread:'Хляб', Meat:'Месо', Fish:'Риба', Pantry:'Тестени',
           Frozen:'Замразени', Drinks:'Напитки', Snacks:'Снаксове',
-          Cleaning:'Почистващи', Hygiene:'Хигиена', Baby:'Бебешки',
-          Pets:'Домашни любимци', Pharmacy:'Аптека', Other:'Други'
+          Cleaning:'Почистващи', Hygiene:'Хигиена', Pharmacy:'Аптека', Other:'Други'
         };
         label.textContent = catBg[cat] || cat;
         const subtotalSpan = document.createElement('span');
