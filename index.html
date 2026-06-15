@@ -360,8 +360,18 @@
             <button type="button" class="secondary" id="shareListBtn">Сподели</button>
             <button type="button" class="secondary" id="deleteListBtn">Изтрий списък</button>
           </form>
-        </div>
-        <div class="layout">
+          <div style="margin-top:8px;">
+  <label for="listNotes" style="display:block;font-size:13px;color:#555;margin-bottom:4px;">
+    Бележки / рецепта
+  </label>
+  <textarea
+    id="listNotes"
+    rows="3"
+    placeholder="Тук можеш да запишеш рецепта, инструкции или други бележки..."
+    style="width:100%;resize:vertical;padding:6px 8px;border-radius:4px;border:1px solid #ccc;font-size:13px;"
+  ></textarea>
+</div>
+                <div class="layout">
           <div>
             <div class="card" id="currentListCard" style="display:none;">
               <div class="section-title-row">
@@ -467,6 +477,7 @@
     const itemShopInput = document.getElementById('itemShopInput');
     const itemCatSelect = document.getElementById('itemCatSelect');
     const itemsContainer = document.getElementById('itemsContainer');
+    const listNotes = document.getElementById('listNotes');
 
     // State
     let currentUser = null;
@@ -716,9 +727,17 @@
             reuseBtn.title = 'Използвай отново';
             reuseBtn.addEventListener('click', async (e) => {
               e.stopPropagation();
-              const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
-              const newTitle = autoListTitle(list.title);
-              const newList = await createNewList(newTitle, resetItems, 'active');
+const resetItems = (list.items || []).map(it => ({ ...it, done: false }));
+const newTitle = autoListTitle(list.title);
+const newList = await createNewList(newTitle, resetItems, 'active');
+if (newList && list.notes) {
+  // копираме бележките в новия списък
+  const withNotes = await saveListPartial(newList.id, { notes: list.notes });
+  if (withNotes) {
+    const idx = lists.findIndex(l => l.id === newList.id);
+    if (idx !== -1) lists[idx] = withNotes;
+  }
+}
               if (newList) {
                 lists.push(newList);
                 currentListId = newList.id;
@@ -764,6 +783,8 @@
       currentListTitle.textContent = list.title;
       listTitleInput.value = list.title;
       currentListStatusTag.textContent = list.status === 'archived' ? 'Архивиран' : 'Активен';
+      listNotes.value = list.notes || '';
+      listNotes.disabled = (list.status === 'archived');
 
       const isArchived = list.status === 'archived';
       itemForm.style.display = isArchived ? 'none' : 'flex';
@@ -1115,6 +1136,20 @@
         renderAll();
       }
     });
+
+    listNotes.addEventListener('blur', async () => {
+  const list = getCurrentList();
+  if (!list || list.status === 'archived') return;
+
+  const newNotes = listNotes.value.trim();
+  if (newNotes === (list.notes || '')) return; // няма промяна
+
+  const updated = await saveListPartial(list.id, { notes: newNotes });
+  if (updated) {
+    const idx = lists.findIndex(l => l.id === list.id);
+    if (idx !== -1) lists[idx] = updated;
+  }
+});
 
     async function initAppAfterLogin() {
       lists = await fetchLists();
